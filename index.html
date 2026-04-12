@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>Family Vault - Complete</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --bg: #0A1A1A;
+  --bg2: #0F2424;
+  --bg3: #153030;
+  --s1: #1A3D3D;
+  --s2: #1F4848;
+  --bd: rgba(0, 255, 255, 0.1);
+  --bd2: rgba(0, 255, 255, 0.2);
+  --a1: #00D4D4;
+  --a2: #00B4B4;
+  --a3: #00A0A0;
+  --tx: #E6F7F7;
+  --tx2: #A8D4D4;
+  --tx3: #6E9C9C;
+  --nav-bg: #0F2424;
+  --font: 'Inter', sans-serif;
+  --radius: 16px;
+  --radius2: 12px;
+  --nh: 60px;
+  --th: 56px;
+  --whatsapp: #25D366;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--tx);
+  min-height: 100vh;
+}
+
+#app {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--bg);
+  position: relative;
+}
+
+.tbw {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: rgba(15, 36, 36, 0.98);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--bd);
+  height: var(--th);
+}
+
+.tb {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.logo {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--a1);
+}
+
+.tb-r {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.av {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--a1), var(--a3));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  color: #0A1A1A;
+}
+
+.tb-name {
+  font-size: 13px;
+  font-weight: 600;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  color: var(--a1);
+  font-size: 24px;
+}
+
+.menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 300;
+  display: none;
+}
+
+.menu-overlay.show {
+  display: block;
+}
+
+.menu-panel {
+  position: fixed;
+  top: 0;
+  right: -280px;
+  width: 280px;
+  height: 100%;
+  background: var(--s1);
+  z-index: 301;
+  transition: right 0.3s ease;
+  box-shadow: -2px 0 10px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-panel.show {
+  right: 0;
+}
+
+.menu-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--bd);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.menu-header .close-btn {
+  background: none;
+  border: none;
+  color: var(--tx);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.menu-items {
+  flex: 1;
+  padding: 20px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  cursor: pointer;
+  border-bottom: 1px solid var(--bd);
+  color: var(--tx2);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.menu-item:hover {
+  color: var(--a1);
+}
+
+.menu-item.active {
+  color: var(--a1);
+  border-left: 3px solid var(--a1);
+  padding-left: 12px;
+}
+
+.menu-footer {
+  padding: 20px;
+  border-top: 1px solid var(--bd);
+  font-size: 12px;
+  color: var(--tx3);
+}
+
+.bottom-nav {
+  position: sticky;
+  bottom: 0;
+  z-index: 200;
+  background: var(--nav-bg);
+  border-top: 1px solid var(--bd);
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.home-btn {
+  background: linear-gradient(135deg, var(--a1), var(--a3));
+  color: #0A1A1A;
+  border: none;
+  border-radius: 30px;
+  padding: 10px 30px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.scr {
+  padding: 12px 16px;
+  min-height: calc(100vh - 112px);
+}
+
+.tab-pane {
+  display: none;
+  animation: fadeIn 0.2s ease;
+}
+
+.tab-pane.show {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.ctitle {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--tx3);
+  margin-bottom: 12px;
+}
+
+.folder-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.folder-card {
+  background: var(--s1);
+  border: 2px solid var(--bd);
+  border-radius: var(--radius);
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  position: relative;
+}
+
+.folder-card:active {
+  transform: scale(0.97);
+}
+
+.folder-card .folder-icon {
+  font-size: 40px;
+  margin-bottom: 8px;
+}
+
+.folder-card .folder-name {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+
+.folder-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  justify-content: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: var(--radius2);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-w { width: 100%; }
+.btn-p { background: linear-gradient(135deg, var(--a1), var(--a3)); color: #0A1A1A; }
+.btn-d { background: rgba(255, 107, 107, 0.2); color: #FF6B6B; border: 1px solid rgba(255,107,107,0.2); }
+.btn-gh { background: var(--s2); color: var(--tx2); border: 1px solid var(--bd2); }
+.btn-sm { padding: 8px 12px; font-size: 12px; border-radius: 8px; }
+.btn-lg { padding: 14px 20px; font-size: 14px; }
+
+input, textarea, select {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg3);
+  border: 1.5px solid var(--bd2);
+  border-radius: var(--radius2);
+  color: var(--tx);
+  font-size: 14px;
+  margin-bottom: 10px;
+  outline: none;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--a1);
+}
+
+.al {
+  padding: 10px 14px;
+  border-radius: var(--radius2);
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.al-s { background: rgba(0, 212, 212, 0.2); color: var(--a1); }
+.al-e { background: rgba(255, 107, 107, 0.2); color: #FF6B6B; }
+.al-i { background: rgba(0, 212, 212, 0.1); color: var(--a1); }
+
+.sh {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.sh-t {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--a1);
+}
+
+.sh-s {
+  font-size: 11px;
+  color: var(--tx2);
+  margin-top: 2px;
+}
+
+/* ---- MODAL STYLES ---- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.15s ease;
+}
+
+.modal-content {
+  background: var(--s1);
+  border: 1px solid var(--bd2);
+  border-radius: var(--radius);
+  padding: 24px 20px 20px;
+  width: 100%;
+  max-width: 340px;
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--a1);
+  margin-bottom: 6px;
+}
+
+.modal-sub {
+  font-size: 12px;
+  color: var(--tx2);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.modal-buttons button { flex: 1; }
+
+/* ---- LOGIN STYLES ---- */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px;
+  background: var(--bg);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.login-header .icon { font-size: 48px; margin-bottom: 12px; }
+.login-header h1 { font-size: 28px; font-weight: 800; color: var(--a1); margin-bottom: 6px; }
+.login-header p { font-size: 12px; color: var(--tx2); }
+
+.pw-w {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.pw-w input {
+  margin-bottom: 0;
+  padding-right: 45px;
+}
+
+.eye-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ccard {
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: var(--radius2);
+  padding: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.c-av {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, var(--a1), var(--a3));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  color: #0A1A1A;
+}
+
+.lnk {
+  color: var(--a1);
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 13px;
+}
+
+.question-select {
+  background: var(--bg3);
+  border: 1.5px solid var(--bd2);
+  border-radius: var(--radius2);
+  padding: 12px;
+  color: var(--tx);
+  margin-bottom: 10px;
+}
+
+.question-select option {
+  background: var(--bg3);
+  color: var(--tx);
+}
+
+.signout-item {
+  color: #FF6B6B !important;
+  border-top: 1px solid var(--bd);
+  margin-top: 20px;
+  padding-top: 14px;
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ============ CONFIGURATION ============
+const SB_URL = "https://vjwslrcmaqlkrjnvrjgm.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqd3NscmNtYXFsa3JqbnZyamdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0ODc4NjMsImV4cCI6MjA5MDA2Mzg2M30.ioOcMwIo6AgzuKtcka6Tf0rSIeLVsKpiye-oJscIhtM";
+
+const ADMINS = [
+  { username: "DawidAdmin", password: "Sh@rlene1984", role: "admin", phone: "0000000000" },
+  { username: "SharleneAdmin", password: "@Ulton27#", role: "admin", phone: "0000000000" }
+];
+
+const SECURITY_QUESTIONS = [
+  "What is your mothers maiden name?",
+  "What is your fathers name?",
+  "What is your first childs name?",
+  "What is your first pets name?",
+  "What was the name of your first school?"
+];
+
+// ============ STATE ============
+let currentUser = null;
+let currentView = 'home';
+let currentFolder = null;
+let menuOpen = false;
+let forgotPhoneNumber = null;
+let folders = [];
+
+// ============ HELPER FUNCTIONS ============
+const escapeHtml = (text) => {
+  if (!text) return '';
+  return String(text).replace(/[&<>"']/g, (m) => {
+    return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m];
+  });
+};
+
+const getInitial = (name) => name ? name.charAt(0).toUpperCase() : '?';
+
+const showMessage = (msg, type = 'info') => {
+  const container = document.getElementById('messageContainer');
+  if (!container) return;
+  const cls = type === 'success' ? 'al-s' : type === 'error' ? 'al-e' : 'al-i';
+  container.innerHTML = `<div class="al ${cls}">${escapeHtml(msg)}</div>`;
+  setTimeout(() => { if (container) container.innerHTML = ''; }, 3000);
+};
+
+const toggleMenu = () => {
+  menuOpen = !menuOpen;
+  const overlay = document.getElementById('menuOverlay');
+  const panel = document.getElementById('menuPanel');
+  if (overlay && panel) {
+    overlay.classList.toggle('show', menuOpen);
+    panel.classList.toggle('show', menuOpen);
+  }
+};
+
+const navigateTo = (view) => {
+  currentView = view;
+  currentFolder = null;
+  if (menuOpen) toggleMenu();
+  renderApp();
+};
+
+// ============ SIGN OUT ============
+const signOut = () => {
+  if (confirm('Are you sure you want to sign out?')) {
+    currentUser = null;
+    currentFolder = null;
+    localStorage.removeItem('family_vault_user');
+    showLogin();
+  }
+};
+
+// ============ FORGOT PASSWORD — MODAL INJECTED DIRECTLY INTO BODY ============
+
+const openForgotModal = () => {
+  // Remove any existing modal
+  document.getElementById('forgotModalOverlay')?.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'forgotModalOverlay';
+  overlay.className = 'modal-overlay';
+
+  overlay.innerHTML = `
+    <div class="modal-content" id="forgotModalBox">
+      <div class="modal-title">🔐 Forgot Password</div>
+      <div class="modal-sub">Enter your registered phone number and we'll help you recover your account.</div>
+      <input type="tel" id="forgotPhone" placeholder="e.g. 0821234567" autocomplete="off" style="margin-bottom:6px">
+      <div id="forgotInlineMsg"></div>
+      <div class="modal-buttons">
+        <button class="btn btn-p" onclick="checkUserForRecovery()">Next ›</button>
+        <button class="btn btn-gh" onclick="closeForgotModal()">Cancel</button>
+      </div>
+    </div>
+  `;
+
+  // Tap outside to close
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeForgotModal();
+  });
+
+  document.body.appendChild(overlay);
+
+  // Auto-focus the phone input
+  setTimeout(() => document.getElementById('forgotPhone')?.focus(), 100);
+};
+
+const closeForgotModal = () => {
+  document.getElementById('forgotModalOverlay')?.remove();
+  forgotPhoneNumber = null;
+};
+
+const checkUserForRecovery = async () => {
+  const phone = document.getElementById('forgotPhone')?.value.trim();
+  const msgEl = document.getElementById('forgotInlineMsg');
+
+  if (!phone) {
+    if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter your phone number.</div>`;
+    return;
+  }
+
+  // Show a loading state
+  if (msgEl) msgEl.innerHTML = `<div class="al al-i">Checking...</div>`;
+
+  const users = await getUsers();
+  const user = users.find(u => u.phone === phone);
+
+  if (!user) {
+    if (msgEl) msgEl.innerHTML = `<div class="al al-e">No account found with this phone number.</div>`;
+    return;
+  }
+
+  // Store phone, close this modal, open security question modal
+  forgotPhoneNumber = phone;
+  closeForgotModal();
+  openSecurityModal(user.security_question);
+};
+
+// ============ SECURITY QUESTION MODAL ============
+
+const openSecurityModal = (question) => {
+  document.getElementById('securityModalOverlay')?.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'securityModalOverlay';
+  overlay.className = 'modal-overlay';
+
+  overlay.innerHTML = `
+    <div class="modal-content" id="securityModalBox">
+      <div class="modal-title">🛡️ Security Question</div>
+      <div class="modal-sub">
+        Answer the question below to recover your account.
+      </div>
+      <div style="
+        background: var(--bg3);
+        border: 1px solid var(--bd2);
+        border-radius: var(--radius2);
+        padding: 12px 14px;
+        font-size: 13px;
+        color: var(--a1);
+        font-weight: 600;
+        margin-bottom: 14px;
+        line-height: 1.5;
+      ">
+        ${escapeHtml(question || 'Security question not set.')}
+      </div>
+      <input type="text" id="securityAnswer" placeholder="Your answer" autocomplete="off" style="margin-bottom:6px">
+      <div id="securityInlineMsg"></div>
+      <div class="modal-buttons">
+        <button class="btn btn-p" onclick="verifySecurityAnswer()">Verify ›</button>
+        <button class="btn btn-gh" onclick="closeSecurityModal()">Cancel</button>
+      </div>
+    </div>
+  `;
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeSecurityModal();
+  });
+
+  document.body.appendChild(overlay);
+  setTimeout(() => document.getElementById('securityAnswer')?.focus(), 100);
+};
+
+const closeSecurityModal = () => {
+  document.getElementById('securityModalOverlay')?.remove();
+  forgotPhoneNumber = null;
+};
+
+const verifySecurityAnswer = async () => {
+  const answer = document.getElementById('securityAnswer')?.value.trim().toLowerCase();
+  const msgEl = document.getElementById('securityInlineMsg');
+
+  if (!answer) {
+    if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter your answer.</div>`;
+    return;
+  }
+
+  if (msgEl) msgEl.innerHTML = `<div class="al al-i">Verifying...</div>`;
+
+  const users = await getUsers();
+  const user = users.find(u => u.phone === forgotPhoneNumber);
+
+  if (!user) {
+    if (msgEl) msgEl.innerHTML = `<div class="al al-e">Something went wrong. Please try again.</div>`;
+    return;
+  }
+
+  if (user.security_answer === answer) {
+    closeSecurityModal();
+    // Show credentials in a friendly alert
+    setTimeout(() => {
+      alert(
+        `✅ Identity Verified!\n\n` +
+        `Your account details:\n\n` +
+        `Username: ${user.username}\n` +
+        `Password: ${user.password}\n\n` +
+        `Please save this information securely.`
+      );
+    }, 200);
+  } else {
+    if (msgEl) msgEl.innerHTML = `<div class="al al-e">Incorrect answer. Please try again.</div>`;
+    // Clear the input so they can retry
+    const answerInput = document.getElementById('securityAnswer');
+    if (answerInput) { answerInput.value = ''; answerInput.focus(); }
+  }
+};
+
+// ============ WHATSAPP ============
+const openWhatsApp = (phone) => {
+  let clean = phone.replace(/\D/g, '');
+  if (clean.startsWith('0')) clean = '27' + clean.substring(1);
+  if (!clean.startsWith('27')) clean = '27' + clean;
+  window.open(`https://wa.me/${clean}`, '_blank');
+};
+
+// ============ SUPABASE FUNCTIONS ============
+const supabaseFetch = async (endpoint, method, body) => {
+  const response = await fetch(`${SB_URL}/rest/v1/${endpoint}`, {
+    method: method,
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': `Bearer ${SB_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': method === 'POST' ? 'return=representation' : ''
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  return response;
+};
+
+// ---- Folder functions ----
+const loadFoldersFromCloud = async () => {
+  try {
+    const response = await supabaseFetch('folders?select=*&order=created_at.desc', 'GET');
+    if (response.ok) {
+      const data = await response.json();
+      folders = data.map(f => ({
+        id: f.id,
+        name: f.name,
+        driveLink: f.drive_link,
+        createdBy: f.created_by,
+        createdByPhone: f.created_by_phone,
+        createdAt: f.created_at
+      }));
+      return folders;
+    }
+  } catch (error) {
+    console.error('Error loading folders:', error);
+  }
+  return [];
+};
+
+const saveFolderToCloud = async (folder) => {
+  try {
+    const response = await supabaseFetch('folders', 'POST', {
+      id: folder.id,
+      name: folder.name,
+      drive_link: folder.driveLink,
+      created_by: folder.createdBy,
+      created_by_phone: folder.createdByPhone,
+      created_at: folder.createdAt
+    });
+    return response.ok;
+  } catch (error) { return false; }
+};
+
+const updateFolderInCloud = async (folder) => {
+  try {
+    const response = await supabaseFetch(`folders?id=eq.${folder.id}`, 'PATCH', {
+      drive_link: folder.driveLink
+    });
+    return response.ok;
+  } catch (error) { return false; }
+};
+
+const deleteFolderFromCloud = async (folderId) => {
+  try {
+    const response = await supabaseFetch(`folders?id=eq.${folderId}`, 'DELETE');
+    return response.ok;
+  } catch (error) { return false; }
+};
+
+// ---- User functions ----
+const getUsers = async () => {
+  try {
+    const response = await supabaseFetch('users?select=*', 'GET');
+    if (response.ok) return response.json();
+  } catch (e) {}
+  return [];
+};
+
+const addUser = async (username, phone, password, securityQuestion, securityAnswer) => {
+  const response = await supabaseFetch('users', 'POST', {
+    username,
+    phone,
+    password,
+    role: 'user',
+    security_question: securityQuestion,
+    security_answer: securityAnswer.toLowerCase(),
+    created_at: new Date().toISOString()
+  });
+  return response.ok;
+};
+
+const updateUser = async (username, updates) => {
+  const response = await supabaseFetch(`users?username=eq.${encodeURIComponent(username)}`, 'PATCH', updates);
+  return response.ok;
+};
+
+const deleteUser = async (username) => {
+  if (ADMINS.some(a => a.username === username)) {
+    showMessage('Cannot delete admin user', 'error');
+    return false;
+  }
+  const response = await supabaseFetch(`users?username=eq.${encodeURIComponent(username)}`, 'DELETE');
+  return response.ok;
+};
+
+// ============ FOLDER LOGIC ============
+const getFolders = () => folders;
+
+const canDeleteFolder = (folder) =>
+  currentUser.role === 'admin' || folder.createdBy === currentUser.username;
+
+const createFolder = async (folderName, driveLink) => {
+  if (folders.find(f => f.name === folderName)) {
+    showMessage('Folder already exists!', 'error');
+    return false;
+  }
+  const newFolder = {
+    id: Date.now(),
+    name: folderName,
+    driveLink: driveLink || '',
+    createdBy: currentUser.username,
+    createdByPhone: currentUser.phone,
+    createdAt: new Date().toISOString()
+  };
+  const saved = await saveFolderToCloud(newFolder);
+  if (saved) {
+    folders.push(newFolder);
+    showMessage(`Folder "${folderName}" created!`, 'success');
+    return true;
+  } else {
+    showMessage('Error saving folder', 'error');
+    return false;
+  }
+};
+
+const updateFolderLink = async (folderId, driveLink) => {
+  const folder = folders.find(f => f.id === folderId);
+  if (folder) {
+    folder.driveLink = driveLink;
+    const updated = await updateFolderInCloud(folder);
+    if (updated) {
+      showMessage('Link updated!', 'success');
+      renderApp();
+    } else {
+      showMessage('Error updating link', 'error');
+    }
+  }
+};
+
+const deleteFolder = async (folderId) => {
+  const folder = folders.find(f => f.id === folderId);
+  if (!folder) return;
+  if (!canDeleteFolder(folder)) {
+    showMessage('You cannot delete this folder. Only the creator can delete it.', 'error');
+    return;
+  }
+  if (confirm(`Delete folder "${folder.name}"?`)) {
+    const deleted = await deleteFolderFromCloud(folderId);
+    if (deleted) {
+      folders = folders.filter(f => f.id !== folderId);
+      showMessage('Folder deleted!', 'success');
+      if (currentFolder === folderId) currentFolder = null;
+      renderApp();
+    } else {
+      showMessage('Error deleting folder', 'error');
+    }
+  }
+};
+
+const openCloudFolder = (driveLink, folderName) => {
+  if (!driveLink) {
+    showMessage('No Google Drive link set', 'error');
+    return;
+  }
+  const fileId = driveLink.match(/\/d\/(.+?)\//)?.[1] || driveLink.match(/folders\/(.+?)(?:\?|$)/)?.[1];
+  const url = fileId ? `https://drive.google.com/open?id=${fileId}` : driveLink;
+  window.open(url, '_blank');
+  showMessage(`Opening ${folderName} in Google Drive...`, 'info');
+};
+
+const openFolderActions = (folderId) => {
+  currentFolder = folderId;
+  renderApp();
+};
+
+const goBackToFolders = () => {
+  currentFolder = null;
+  renderApp();
+};
+
+const createFolderInDrive = async () => {
+  const folderName = prompt('Enter folder name:');
+  if (!folderName) return;
+  await createFolder(folderName, '');
+  const link = prompt(`Now go to Google Drive, create a folder named "${folderName}", then paste the folder link here:`);
+  if (link && link.trim()) {
+    const newFolder = folders.find(f => f.name === folderName);
+    if (newFolder) await updateFolderLink(newFolder.id, link.trim());
+  } else {
+    showMessage(`Folder "${folderName}" created. Add link later.`, 'info');
+  }
+  renderApp();
+};
+
+// ============ RENDER: FOLDER VIEW ============
+const renderFolderView = () => {
+  const container = document.getElementById('folderViewContainer');
+  if (!container) return;
+  const visibleFolders = getFolders();
+
+  if (!currentFolder) {
+    container.innerHTML = `
+      <div class="sh">
+        <div>
+          <div class="sh-t">📁 Family Folders</div>
+          <div class="sh-s">${visibleFolders.length} folders</div>
+        </div>
+        <button class="btn btn-p btn-sm" onclick="createFolderInDrive()">+ New Folder</button>
+      </div>
+      <div class="folder-grid">
+        ${visibleFolders.map(folder => `
+          <div class="folder-card" onclick="openFolderActions(${folder.id})">
+            <div class="folder-icon">📁</div>
+            <div class="folder-name">${escapeHtml(folder.name)}</div>
+            <div style="font-size:9px;color:var(--tx3);margin-top:4px">
+              👤 ${escapeHtml(folder.createdBy)} • 📅 ${new Date(folder.createdAt).toLocaleDateString()}
+            </div>
+            ${folder.driveLink
+              ? '<div style="font-size:10px;color:var(--a1);margin-top:5px">☁️ Connected</div>'
+              : '<div style="font-size:10px;color:var(--tx3);margin-top:5px">⚠️ No link</div>'}
+            <div class="folder-actions" onclick="event.stopPropagation()">
+              <button class="btn btn-sm btn-gh" onclick="showEditLinkModal(${folder.id}, '${escapeHtml(folder.name)}')">🔗 Edit Link</button>
+              ${canDeleteFolder(folder) ? `<button class="btn btn-sm btn-d" onclick="deleteFolder(${folder.id})">🗑️</button>` : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    return;
+  }
+
+  const folder = visibleFolders.find(f => f.id === currentFolder);
+  if (!folder) { currentFolder = null; renderFolderView(); return; }
+
+  container.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <span style="color:var(--a1);cursor:pointer" onclick="goBackToFolders()">📁 All Folders</span>
+      <span style="color:var(--tx3)">›</span>
+      <span>${escapeHtml(folder.name)}</span>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="font-size:64px;margin-bottom:16px">📁</div>
+      <div class="sh-t" style="margin-bottom:8px">${escapeHtml(folder.name)}</div>
+      <div class="sh-s" style="margin-bottom:24px">Created by: ${escapeHtml(folder.createdBy)}</div>
+      <button class="btn btn-p btn-lg" onclick="openCloudFolder('${escapeHtml(folder.driveLink || '')}', '${escapeHtml(folder.name)}')">
+        ☁️ Open in Google Drive
+      </button>
+      ${!folder.driveLink ? `<div class="al al-i" style="margin-top:16px">⚠️ No Google Drive link set. Click "Edit Link" on the folder to add it.</div>` : ''}
+    </div>
+    <div class="card" style="text-align:center;background:var(--bg3)">
+      <div style="font-size:12px;color:var(--tx2);line-height:1.6">
+        <strong>💡 How to use:</strong><br><br>
+        1. Click "Open in Google Drive" to access the folder<br>
+        2. Upload photos/videos directly to Google Drive<br>
+        3. All family members can access the same folder!
+      </div>
+    </div>
+  `;
+};
+
+const showEditLinkModal = (folderId, folderName) => {
+  closeModal();
+  const modalHtml = `
+    <div class="modal-overlay" id="editLinkModal" onclick="closeModal()">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-title">🔗 Edit Google Drive Link</div>
+        <div class="modal-sub">Folder: ${escapeHtml(folderName)}</div>
+        <input type="text" id="driveLinkUrl" placeholder="Paste Google Drive folder link here" autocomplete="off">
+        <div class="modal-buttons">
+          <button class="btn btn-p" onclick="saveDriveLink(${folderId})">Save Link</button>
+          <button class="btn btn-gh" onclick="closeModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+};
+
+const saveDriveLink = async (folderId) => {
+  const link = document.getElementById('driveLinkUrl')?.value.trim();
+  if (!link) { showMessage('Please enter a valid link', 'error'); return; }
+  await updateFolderLink(folderId, link);
+  closeModal();
+  renderApp();
+};
+
+const closeModal = () => {
+  document.getElementById('editLinkModal')?.remove();
+};
+
+// ============ RENDER: CONTACTS ============
+const renderContacts = async () => {
+  const container = document.getElementById('contactsContainer');
+  if (!container) return;
+  const users = await getUsers();
+  const others = users.filter(u => u.username !== currentUser.username);
+  container.innerHTML = `
+    <div class="sh">
+      <div>
+        <div class="sh-t">👥 Contacts</div>
+        <div class="sh-s">${others.length} family members</div>
+      </div>
+    </div>
+    ${others.map(u => `
+      <div class="ccard">
+        <div class="c-av">${getInitial(u.username)}</div>
+        <div style="flex:1">
+          <div style="font-weight:700">${escapeHtml(u.username)}</div>
+          <div style="font-size:11px;color:var(--tx2)">📞 ${escapeHtml(u.phone)}</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-sm btn-gh" onclick="window.location.href='tel:${escapeHtml(u.phone)}'"
+            style="padding:8px;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center">📞</button>
+          <button class="btn btn-sm" onclick="openWhatsApp('${escapeHtml(u.phone)}')"
+            style="padding:8px;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:#25D366;color:white">💬</button>
+        </div>
+      </div>
+    `).join('')}
+  `;
+};
+
+// ============ RENDER: SETTINGS ============
+const renderSettings = () => {
+  const container = document.getElementById('settingsContainer');
+  if (!container) return;
+  container.innerHTML = `
+    <div class="sh"><div class="sh-t">⚙️ Account Settings</div></div>
+    <div class="card">
+      <div class="ctitle">👤 Edit Profile</div>
+      <div><strong>Current Username:</strong> ${escapeHtml(currentUser.username)}</div>
+      <div style="margin-top:8px"><strong>Current Phone:</strong> ${escapeHtml(currentUser.phone)}</div>
+      <hr style="margin:12px 0;border-color:var(--bd)">
+      <input type="text" id="editUsername" placeholder="New Username" value="${escapeHtml(currentUser.username)}">
+      <input type="tel" id="editPhone" placeholder="New Phone Number" value="${escapeHtml(currentUser.phone)}">
+      <button class="btn btn-p btn-w" onclick="updateProfile()">Update Profile</button>
+    </div>
+    <div class="card">
+      <div class="ctitle">🔐 Change Password</div>
+      <div class="pw-w"><input type="password" id="currentPassword" placeholder="Current password"><button class="eye-btn" onclick="togglePassword('currentPassword')">👁️</button></div>
+      <div class="pw-w"><input type="password" id="newPassword" placeholder="New password (min 6 chars)"><button class="eye-btn" onclick="togglePassword('newPassword')">👁️</button></div>
+      <div class="pw-w"><input type="password" id="confirmPassword" placeholder="Confirm new password"><button class="eye-btn" onclick="togglePassword('confirmPassword')">👁️</button></div>
+      <button class="btn btn-p btn-w" onclick="changePassword()">Update Password</button>
+    </div>
+    <div class="card">
+      <div class="ctitle">📱 How to Download</div>
+      <div style="font-size:12px;color:var(--tx2);line-height:1.6">
+        1. Tap on any folder to open it<br>
+        2. Tap "Open in Google Drive"<br>
+        3. In Google Drive, tap the ⋮ (3 dots) on any file<br>
+        4. Tap "Download" or "Save to device"
+      </div>
+    </div>
+  `;
+};
+
+const updateProfile = async () => {
+  const newUsername = document.getElementById('editUsername')?.value.trim();
+  const newPhone = document.getElementById('editPhone')?.value.trim();
+  if (!newUsername || newUsername.length < 3) { showMessage('Username must be at least 3 characters', 'error'); return; }
+  if (!newPhone || newPhone.length < 10) { showMessage('Valid phone number required', 'error'); return; }
+  if (newUsername !== currentUser.username) {
+    const users = await getUsers();
+    if (users.find(u => u.username === newUsername)) { showMessage('Username already taken', 'error'); return; }
+  }
+  const success = await updateUser(currentUser.username, { username: newUsername, phone: newPhone });
+  if (success) {
+    currentUser.username = newUsername;
+    currentUser.phone = newPhone;
+    localStorage.setItem('family_vault_user', newUsername);
+    showMessage('Profile updated!', 'success');
+    renderApp();
+  } else {
+    showMessage('Error updating profile', 'error');
+  }
+};
+
+const changePassword = async () => {
+  const currentPw = document.getElementById('currentPassword')?.value.trim();
+  const newPw = document.getElementById('newPassword')?.value.trim();
+  const confirmPw = document.getElementById('confirmPassword')?.value.trim();
+  if (!currentPw || !newPw) { showMessage('Please fill all fields', 'error'); return; }
+  if (newPw.length < 6) { showMessage('New password must be at least 6 characters', 'error'); return; }
+  if (newPw !== confirmPw) { showMessage('New passwords do not match', 'error'); return; }
+  const users = await getUsers();
+  const user = users.find(u => u.username === currentUser.username);
+  if (!user || user.password !== currentPw) { showMessage('Current password is incorrect', 'error'); return; }
+  const success = await updateUser(currentUser.username, { password: newPw });
+  if (success) {
+    currentUser.password = newPw;
+    showMessage('Password updated!', 'success');
+    document.getElementById('currentPassword').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmPassword').value = '';
+  } else {
+    showMessage('Error updating password', 'error');
+  }
+};
+
+const togglePassword = (inputId) => {
+  const input = document.getElementById(inputId);
+  if (input) input.type = input.type === 'password' ? 'text' : 'password';
+};
+
+// ============ RENDER: ADMIN PANEL ============
+const renderAdminPanel = async () => {
+  const container = document.getElementById('adminContainer');
+  if (!container) return;
+  const users = await getUsers();
+  const regularUsers = users.filter(u => u.role !== 'admin');
+  container.innerHTML = `
+    <div class="sh">
+      <div class="sh-t">👑 Admin Panel</div>
+      <div class="sh-s">Manage Users</div>
+    </div>
+    <div class="card">
+      <div class="ctitle">👥 User Management</div>
+      ${regularUsers.length === 0 ? '<div style="text-align:center;padding:20px;color:var(--tx3)">No users yet</div>' : ''}
+      ${regularUsers.map(user => `
+        <div style="background:var(--s2);border-radius:12px;padding:12px;margin-bottom:10px">
+          <div style="font-weight:700">${escapeHtml(user.username)}</div>
+          <div style="font-size:11px;color:var(--tx3);margin-bottom:8px">📞 ${escapeHtml(user.phone)}</div>
+          <button class="btn btn-sm btn-d" onclick="deleteUserAccount('${escapeHtml(user.username)}')">Delete User</button>
+        </div>
+      `).join('')}
+    </div>
+    <div class="card">
+      <div class="ctitle">📁 Folder Management</div>
+      <div style="font-size:12px;color:var(--tx2)">
+        Users can only delete folders they created.<br>
+        Admin can delete any folder.
+      </div>
+    </div>
+  `;
+};
+
+const deleteUserAccount = async (username) => {
+  if (!confirm(`Delete user "${username}"?`)) return;
+  const success = await deleteUser(username);
+  if (success) {
+    showMessage(`User "${username}" deleted!`, 'success');
+    renderAdminPanel();
+  } else {
+    showMessage('Error deleting user', 'error');
+  }
+};
+
+// ============ RENDER: HOME ============
+const renderHome = () => {
+  const container = document.getElementById('homeContainer');
+  if (!container) return;
+  const visibleFolders = getFolders();
+  container.innerHTML = `
+    <div class="sh"><div><div class="sh-t">👋 Welcome, ${escapeHtml(currentUser.username)}</div><div class="sh-s">Family Google Drive Organizer</div></div></div>
+    <div class="card" style="text-align:center;background:linear-gradient(135deg, var(--s1), var(--s2))">
+      <div style="font-size:48px;margin-bottom:12px">☁️📁</div>
+      <div style="font-size:18px;font-weight:700;margin-bottom:8px">Family Google Drive</div>
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:16px">Organize and share folders with your family</div>
+      <button class="btn btn-p btn-w" onclick="navigateTo('folders')">Browse All Folders</button>
+    </div>
+    <div class="card">
+      <div class="ctitle">📊 Family Stats</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center">
+        <div>
+          <div style="font-size:32px;font-weight:800;color:var(--a1)">${visibleFolders.length}</div>
+          <div style="font-size:11px;color:var(--tx2)">Total Folders</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle">💡 How It Works</div>
+      <div style="font-size:12px;color:var(--tx2);line-height:1.6">
+        📁 Anyone can create folders and add Google Drive links<br><br>
+        👤 You can delete folders you created<br><br>
+        👑 Admin can delete any folder<br><br>
+        ☁️ All files are stored in your own Google Drive<br><br>
+        💬 Tap the WhatsApp button in Contacts to message family members!
+      </div>
+    </div>
+  `;
+};
+
+// ============ MAIN APP RENDER ============
+const renderApp = () => {
+  const isAdmin = currentUser?.role === 'admin';
+  document.getElementById('app').innerHTML = `
+    <div class="tbw">
+      <div class="tb">
+        <div class="logo">☁️ Family Vault</div>
+        <div class="tb-r">
+          <div class="av">${getInitial(currentUser.username)}</div>
+          <span class="tb-name">${escapeHtml(currentUser.username)}</span>
+          <button class="menu-btn" onclick="toggleMenu()">☰</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="menuOverlay" class="menu-overlay" onclick="toggleMenu()"></div>
+    <div id="menuPanel" class="menu-panel">
+      <div class="menu-header">
+        <span style="font-weight:700">Menu</span>
+        <button class="close-btn" onclick="toggleMenu()">✕</button>
+      </div>
+      <div class="menu-items">
+        <div class="menu-item ${currentView === 'home' ? 'active' : ''}" onclick="navigateTo('home')">🏠 Home</div>
+        <div class="menu-item ${currentView === 'folders' ? 'active' : ''}" onclick="navigateTo('folders')">📁 Folders</div>
+        <div class="menu-item ${currentView === 'contacts' ? 'active' : ''}" onclick="navigateTo('contacts')">👥 Contacts</div>
+        <div class="menu-item ${currentView === 'settings' ? 'active' : ''}" onclick="navigateTo('settings')">⚙️ Settings</div>
+        ${isAdmin ? `<div class="menu-item ${currentView === 'admin' ? 'active' : ''}" onclick="navigateTo('admin')">👑 Admin Panel</div>` : ''}
+        <div class="menu-item signout-item" onclick="signOut()">🚪 Sign Out</div>
+      </div>
+      <div class="menu-footer">
+        <div>Logged in as: ${escapeHtml(currentUser.username)}</div>
+        <div style="margin-top:4px;font-size:10px">📞 ${escapeHtml(currentUser.phone)}</div>
+      </div>
+    </div>
+
+    <div class="scr">
+      <div id="messageContainer"></div>
+      <div id="homeContainer"        class="tab-pane ${currentView === 'home'     ? 'show' : ''}"></div>
+      <div id="folderViewContainer"  class="tab-pane ${currentView === 'folders'  ? 'show' : ''}"></div>
+      <div id="contactsContainer"    class="tab-pane ${currentView === 'contacts' ? 'show' : ''}"></div>
+      <div id="settingsContainer"    class="tab-pane ${currentView === 'settings' ? 'show' : ''}"></div>
+      ${isAdmin ? `<div id="adminContainer" class="tab-pane ${currentView === 'admin' ? 'show' : ''}"></div>` : ''}
+    </div>
+
+    <div class="bottom-nav">
+      <button class="home-btn" onclick="navigateTo('home')">🏠 Home</button>
+    </div>
+  `;
+
+  if (currentView === 'home')     renderHome();
+  if (currentView === 'folders')  renderFolderView();
+  if (currentView === 'contacts') renderContacts();
+  if (currentView === 'settings') renderSettings();
+  if (isAdmin && currentView === 'admin') renderAdminPanel();
+};
+
+// ============ AUTHENTICATION ============
+const doLogin = async () => {
+  const username = document.getElementById('loginUsername')?.value.trim();
+  const password = document.getElementById('loginPassword')?.value.trim();
+  const remember = document.getElementById('rememberMe')?.checked || false;
+  if (!username || !password) { showMessage('Enter username and password', 'error'); return; }
+
+  const admin = ADMINS.find(a => a.username === username && a.password === password);
+  if (admin) {
+    currentUser = { ...admin, role: 'admin' };
+    if (remember) localStorage.setItem('family_vault_user', username);
+    await loadFoldersFromCloud();
+    renderApp();
+    return;
+  }
+
+  const users = await getUsers();
+  const user = users.find(u => u.username === username && u.password === password);
+  if (user) {
+    currentUser = user;
+    if (remember) localStorage.setItem('family_vault_user', username);
+    await loadFoldersFromCloud();
+    renderApp();
+    return;
+  }
+
+  showMessage('Invalid username or password', 'error');
+};
+
+const doSignup = async () => {
+  const username        = document.getElementById('signupUsername')?.value.trim();
+  const phone           = document.getElementById('signupPhone')?.value.trim();
+  const password        = document.getElementById('signupPassword')?.value.trim();
+  const confirm         = document.getElementById('signupConfirm')?.value.trim();
+  const securityQuestion = document.getElementById('securityQuestion')?.value;
+  const securityAnswer  = document.getElementById('securityAnswerInput')?.value.trim();
+
+  if (!username || username.length < 3)  { showMessage('Username: min 3 characters', 'error'); return; }
+  if (!phone || phone.length < 10)       { showMessage('Valid phone number required', 'error'); return; }
+  if (password.length < 6)               { showMessage('Password: min 6 characters', 'error'); return; }
+  if (password !== confirm)              { showMessage('Passwords do not match', 'error'); return; }
+  if (!securityQuestion)                 { showMessage('Please select a security question', 'error'); return; }
+  if (!securityAnswer)                   { showMessage('Please enter an answer to your security question', 'error'); return; }
+  if (ADMINS.some(a => a.username === username)) { showMessage('Username not available', 'error'); return; }
+
+  const users = await getUsers();
+  if (users.find(u => u.username === username)) { showMessage('Username taken', 'error'); return; }
+  if (users.find(u => u.phone === phone))        { showMessage('Phone number already registered', 'error'); return; }
+
+  const success = await addUser(username, phone, password, securityQuestion, securityAnswer);
+  if (success) { showMessage('Account created! Please sign in.', 'success'); showLogin(); }
+  else showMessage('Error creating account', 'error');
+};
+
+const showLogin = () => {
+  const savedUser = localStorage.getItem('family_vault_user');
+  document.getElementById('app').innerHTML = `
+    <div class="login-container">
+      <div class="login-header">
+        <div class="icon">☁️</div>
+        <h1>Family Vault</h1>
+        <p>Google Drive organizer for family memories</p>
+      </div>
+
+      <div id="loginForm">
+        <div class="card">
+          <div class="ctitle">Sign In</div>
+          <input type="text" id="loginUsername" placeholder="Username" value="${escapeHtml(savedUser || '')}">
+          <div class="pw-w">
+            <input type="password" id="loginPassword" placeholder="Password">
+            <button class="eye-btn" onclick="togglePassword('loginPassword')">👁️</button>
+          </div>
+          <div class="check-row">
+            <input type="checkbox" id="rememberMe" ${savedUser ? 'checked' : ''}>
+            <label for="rememberMe">Remember me</label>
+          </div>
+          <div style="text-align:right;margin-bottom:16px">
+            <span class="lnk" onclick="openForgotModal()">Forgot password?</span>
+          </div>
+          <button class="btn btn-p btn-w" onclick="doLogin()">Sign In</button>
+          <button class="btn btn-gh btn-w" style="margin-top:12px" onclick="showSignup()">Create Account</button>
+        </div>
+      </div>
+
+      <div id="signupForm" style="display:none">
+        <div class="card">
+          <div class="ctitle">Create Account</div>
+          <input type="text" id="signupUsername" placeholder="Username (min 3 chars)">
+          <input type="tel" id="signupPhone" placeholder="Phone number">
+          <div class="pw-w">
+            <input type="password" id="signupPassword" placeholder="Password (min 6 chars)">
+            <button class="eye-btn" onclick="togglePassword('signupPassword')">👁️</button>
+          </div>
+          <div class="pw-w">
+            <input type="password" id="signupConfirm" placeholder="Confirm password">
+            <button class="eye-btn" onclick="togglePassword('signupConfirm')">👁️</button>
+          </div>
+          <div class="ctitle" style="margin-top:16px">🔐 Security Question</div>
+          <select id="securityQuestion" class="question-select">
+            <option value="">Select a security question...</option>
+            ${SECURITY_QUESTIONS.map(q => `<option value="${escapeHtml(q)}">${escapeHtml(q)}</option>`).join('')}
+          </select>
+          <input type="text" id="securityAnswerInput" placeholder="Your answer">
+          <button class="btn btn-p btn-w" onclick="doSignup()">Create Account</button>
+          <button class="btn btn-gh btn-w" style="margin-top:12px" onclick="showSignupBack()">Back to Sign In</button>
+        </div>
+      </div>
+
+      <div id="messageContainer"></div>
+    </div>
+  `;
+};
+
+const showSignup = () => {
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('signupForm').style.display = 'block';
+};
+
+const showSignupBack = () => {
+  document.getElementById('signupForm').style.display = 'none';
+  document.getElementById('loginForm').style.display = 'block';
+};
+
+// ============ INITIALIZE ============
+window.onload = async () => {
+  // Expose all functions globally
+  window.doLogin = doLogin;
+  window.doSignup = doSignup;
+  window.showLogin = showLogin;
+  window.showSignup = showSignup;
+  window.showSignupBack = showSignupBack;
+  window.toggleMenu = toggleMenu;
+  window.navigateTo = navigateTo;
+  window.signOut = signOut;
+  window.openForgotModal = openForgotModal;
+  window.closeForgotModal = closeForgotModal;
+  window.checkUserForRecovery = checkUserForRecovery;
+  window.openSecurityModal = openSecurityModal;
+  window.closeSecurityModal = closeSecurityModal;
+  window.verifySecurityAnswer = verifySecurityAnswer;
+  window.createFolderInDrive = createFolderInDrive;
+  window.showEditLinkModal = showEditLinkModal;
+  window.saveDriveLink = saveDriveLink;
+  window.deleteFolder = deleteFolder;
+  window.closeModal = closeModal;
+  window.openCloudFolder = openCloudFolder;
+  window.openFolderActions = openFolderActions;
+  window.goBackToFolders = goBackToFolders;
+  window.changePassword = changePassword;
+  window.togglePassword = togglePassword;
+  window.deleteUserAccount = deleteUserAccount;
+  window.openWhatsApp = openWhatsApp;
+  window.updateProfile = updateProfile;
+
+  const savedUser = localStorage.getItem('family_vault_user');
+  if (savedUser) {
+    const users = await getUsers();
+    const user = users.find(u => u.username === savedUser);
+    if (user) {
+      currentUser = user;
+      await loadFoldersFromCloud();
+      renderApp();
+      return;
+    }
+  }
+  showLogin();
+};
+</script>
+</body>
+</html>
