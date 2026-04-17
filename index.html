@@ -3,104 +3,303 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
 <title>Family Vault</title>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
+
+
+html {
+  font-size: clamp(12px, 4vw, 16px);
+}
+@media screen and (max-width: 380px) {
+  .sh-t { font-size: 14px !important; }
+  .stat-num { font-size: 16px !important; }
+  .folder-name { font-size: 10px !important; }
+  .btn { padding: 5px 8px !important; font-size: 10px !important; }
+  .card { padding: 8px !important; }
+  .tb-name { max-width: 50px !important; font-size: 10px !important; }
+  .nav-tab .nt-label { font-size: 7px !important; }
+  .nav-tab .nt-icon { font-size: 16px !important; }
+  .cal-day-num { font-size: 9px !important; }
+  .event-title { font-size: 11px !important; }
+}
+@media screen and (max-width: 320px) {
+  .folder-grid { grid-template-columns: 1fr !important; gap: 6px !important; }
+  .stats-grid { gap: 4px !important; }
+  .stat-card { padding: 4px !important; }
+  .recipe-meta { flex-wrap: wrap !important; }
+}
+.bottom-nav {
+  padding: 4px 2px calc(env(safe-area-inset-bottom) + 4px);
+  min-height: 54px;
+}
+.nav-tab {
+  min-width: 38px;
+  padding: 2px 3px;
+}
+button, .nav-tab, .menu-item, .folder-card {
+  min-height: 40px;
+}
+@media screen and (max-width: 400px) {
+  .folder-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
 /* ============ THEME VARIABLES ============ */
-:root, [data-theme="turquoise"] {
-  --bg:#0A0E1A; --bg2:#0F1320; --bg3:#151A2A;
-  --s1:#1A1F30; --s2:#202540; --s3:#2A3050;
-  --bd:rgba(30,144,255,0.12); --bd2:rgba(30,144,255,0.25);
-  --a1:#1E90FF; --a2:#1875CC; --a3:#1058A0;
-  --tx:#E8F0FF; --tx2:#8AAEE0; --tx3:#4A6080;
-  --nav-bg:#0F1320; --shadow:0 4px 20px rgba(0,0,0,0.50);
-  --shadow-sm:0 1px 6px rgba(30,144,255,0.10); --btn-text:#FFFFFF;
-  --danger:#FF5F6D; --danger-bg:rgba(255,95,109,0.14);
-  --success:#3DD9A0; --whatsapp:#25D366; --recipe:#FF9F5A; --location:#6EE7B7;
+/* ============ IMPROVED THEMES - Clean backgrounds, colored accents ============ */
+
+/* Base Light Theme (default - clean white) */
+:root, [data-theme="light"] {
+  --bg: #F5F7FA;
+  --bg2: #FFFFFF;
+  --bg3: #EEF2F8;
+  --s1: #FFFFFF;
+  --s2: #F8FAFE;
+  --s3: #F0F4FA;
+  --bd: rgba(0, 0, 0, 0.06);
+  --bd2: rgba(0, 0, 0, 0.10);
+  --a1: #0088A0;
+  --a2: #006D82;
+  --a3: #005566;
+  --tx: #1A2C3E;
+  --tx2: #5A7A9A;
+  --tx3: #8AAABA;
+  --nav-bg: #FFFFFF;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --shadow-sm: 0 1px 6px rgba(0, 0, 0, 0.04);
+  --btn-text: #FFFFFF;
+  --danger: #DC3545;
+  --danger-bg: rgba(220, 53, 69, 0.08);
+  --success: #28A745;
+  --whatsapp: #25D366;
+  --recipe: #E07830;
+  --location: #1A8060;
 }
-[data-theme="light"] {
-  --bg:#F0F4F8; --bg2:#FFFFFF; --bg3:#E4EEF5;
-  --s1:#FFFFFF; --s2:#EEF5FB; --s3:#DCF0F8;
-  --bd:rgba(0,140,160,0.13); --bd2:rgba(0,140,160,0.26);
-  --a1:#0088A0; --a2:#006D82; --a3:#005566;
-  --tx:#0B1E2C; --tx2:#3A6070; --tx3:#80AABC;
-  --nav-bg:#FFFFFF; --shadow:0 4px 20px rgba(0,100,130,0.10);
-  --shadow-sm:0 1px 6px rgba(0,100,130,0.07); --btn-text:#FFFFFF;
-  --danger:#D43A3A; --danger-bg:rgba(212,58,58,0.10);
-  --success:#1A8060; --whatsapp:#1DA851; --recipe:#E07830; --location:#1A8060;
+
+/* Turquoise - Clean light blue theme */
+[data-theme="turquoise"] {
+  --bg: #F0F7FF;
+  --bg2: #FFFFFF;
+  --bg3: #E8F0FE;
+  --s1: #FFFFFF;
+  --s2: #FAFDFF;
+  --s3: #F0F8FF;
+  --bd: rgba(30, 144, 255, 0.10);
+  --bd2: rgba(30, 144, 255, 0.18);
+  --a1: #1E90FF;
+  --a2: #1875CC;
+  --a3: #1058A0;
+  --tx: #1A2C3E;
+  --tx2: #4A6A85;
+  --tx3: #7A9AB5;
+  --nav-bg: #FFFFFF;
+  --shadow: 0 2px 12px rgba(30, 144, 255, 0.08);
+  --shadow-sm: 0 1px 6px rgba(30, 144, 255, 0.04);
+  --btn-text: #FFFFFF;
+  --danger: #FF5F6D;
+  --danger-bg: rgba(255, 95, 109, 0.08);
+  --success: #28A745;
+  --whatsapp: #25D366;
+  --recipe: #FF9F5A;
+  --location: #3ABB8A;
 }
-/* 🔴 Red / Black */
+
+/* Dark Mode - Clean dark background with good contrast */
+[data-theme="dark"] {
+  --bg: #0F1117;
+  --bg2: #181C24;
+  --bg3: #202430;
+  --s1: #181C24;
+  --s2: #202430;
+  --s3: #2A2E3C;
+  --bd: rgba(255, 255, 255, 0.06);
+  --bd2: rgba(255, 255, 255, 0.10);
+  --a1: #4A9EFF;
+  --a2: #3A7ED0;
+  --a3: #2A5EA0;
+  --tx: #EEF2F8;
+  --tx2: #9AACBE;
+  --tx3: #6A7C8E;
+  --nav-bg: #181C24;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 6px rgba(0, 0, 0, 0.2);
+  --btn-text: #FFFFFF;
+  --danger: #FF6B6B;
+  --danger-bg: rgba(255, 107, 107, 0.10);
+  --success: #3DD9A0;
+  --whatsapp: #25D366;
+  --recipe: #FF9F5A;
+  --location: #6EE7B7;
+}
+
+/* Red Theme - Accent only, background stays clean */
 [data-theme="redblack"] {
-  --bg:#100608; --bg2:#180A0C; --bg3:#1E0E10;
-  --s1:#2A1215; --s2:#32161A; --s3:#3C1A1E;
-  --bd:rgba(255,30,60,0.14); --bd2:rgba(255,30,60,0.32);
-  --a1:#FF1E3C; --a2:#E0001A; --a3:#B80014;
-  --tx:#FAE8EA; --tx2:#FF8095; --tx3:#6A3840;
-  --nav-bg:#180A0C; --shadow:0 4px 20px rgba(0,0,0,0.55);
-  --shadow-sm:0 1px 6px rgba(0,0,0,0.35); --btn-text:#FFF0F2;
-  --danger:#FF8A70; --danger-bg:rgba(255,138,112,0.14);
-  --success:#3DD9A0; --whatsapp:#25D366; --recipe:#FF9F5A; --location:#FF8A8A;
+  --bg: #FEF5F5;
+  --bg2: #FFFFFF;
+  --bg3: #FEF0F0;
+  --s1: #FFFFFF;
+  --s2: #FEF8F8;
+  --s3: #FEF0F0;
+  --bd: rgba(220, 53, 69, 0.10);
+  --bd2: rgba(220, 53, 69, 0.18);
+  --a1: #DC3545;
+  --a2: #B02A37;
+  --a3: #8A1F2A;
+  --tx: #2C1A1E;
+  --tx2: #8A5A62;
+  --tx3: #B88A92;
+  --nav-bg: #FFFFFF;
+  --shadow: 0 2px 12px rgba(220, 53, 69, 0.08);
+  --shadow-sm: 0 1px 6px rgba(220, 53, 69, 0.04);
+  --btn-text: #FFFFFF;
+  --danger: #DC3545;
+  --danger-bg: rgba(220, 53, 69, 0.08);
+  --success: #28A745;
+  --whatsapp: #25D366;
+  --recipe: #E07830;
+  --location: #3ABB8A;
 }
-/* 💜 Purple */
+
+/* Purple Theme - Clean with purple accents */
 [data-theme="bluepink"] {
-  --bg:#07091A; --bg2:#0D1030; --bg3:#10163A;
-  --s1:#161D44; --s2:#1C2452; --s3:#222C5E;
-  --bd:rgba(160,100,240,0.12); --bd2:rgba(160,100,240,0.28);
-  --a1:#C86EF0; --a2:#A050D0; --a3:#7A36AA;
-  --tx:#F2E8FA; --tx2:#B090D0; --tx3:#5A3878;
-  --nav-bg:#0D1030; --shadow:0 4px 20px rgba(0,0,0,0.55);
-  --shadow-sm:0 1px 6px rgba(0,0,0,0.35); --btn-text:#1A0030;
-  --danger:#FF5F6D; --danger-bg:rgba(255,95,109,0.14);
-  --success:#3DD9A0; --whatsapp:#25D366; --recipe:#FF85C0; --location:#85D4FF;
+  --bg: #F8F5FE;
+  --bg2: #FFFFFF;
+  --bg3: #F3EEFD;
+  --s1: #FFFFFF;
+  --s2: #FAF8FF;
+  --s3: #F3EEFD;
+  --bd: rgba(128, 90, 200, 0.10);
+  --bd2: rgba(128, 90, 200, 0.18);
+  --a1: #8B5CF6;
+  --a2: #7C3AED;
+  --a3: #6D28D9;
+  --tx: #1E1B2E;
+  --tx2: #6B5B8A;
+  --tx3: #9B8BB0;
+  --nav-bg: #FFFFFF;
+  --shadow: 0 2px 12px rgba(139, 92, 246, 0.08);
+  --shadow-sm: 0 1px 6px rgba(139, 92, 246, 0.04);
+  --btn-text: #FFFFFF;
+  --danger: #DC3545;
+  --danger-bg: rgba(220, 53, 69, 0.08);
+  --success: #28A745;
+  --whatsapp: #25D366;
+  --recipe: #E07830;
+  --location: #3ABB8A;
 }
-/* 🩷 Pink */
+
+/* Pink Theme */
 [data-theme="pink"] {
-  --bg:#180A10; --bg2:#220F18; --bg3:#2A1320;
-  --s1:#361828; --s2:#421E32; --s3:#50253E;
-  --bd:rgba(255,80,160,0.14); --bd2:rgba(255,80,160,0.30);
-  --a1:#FF50A0; --a2:#E0357F; --a3:#B82060;
-  --tx:#FDE8F2; --tx2:#FF90C0; --tx3:#7A3054;
-  --nav-bg:#220F18; --shadow:0 4px 20px rgba(0,0,0,0.55);
-  --shadow-sm:0 1px 6px rgba(0,0,0,0.35); --btn-text:#18050E;
-  --danger:#FF8A70; --danger-bg:rgba(255,138,112,0.14);
-  --success:#3DD9A0; --whatsapp:#25D366; --recipe:#FFB347; --location:#FF90D0;
+  --bg: #FEF5F8;
+  --bg2: #FFFFFF;
+  --bg3: #FEF0F5;
+  --s1: #FFFFFF;
+  --s2: #FEF8FA;
+  --s3: #FEF0F5;
+  --bd: rgba(236, 72, 153, 0.10);
+  --bd2: rgba(236, 72, 153, 0.18);
+  --a1: #EC4899;
+  --a2: #DB2777;
+  --a3: #BE185D;
+  --tx: #2E1A26;
+  --tx2: #8A5A72;
+  --tx3: #B88A9A;
+  --nav-bg: #FFFFFF;
+  --shadow: 0 2px 12px rgba(236, 72, 153, 0.08);
+  --shadow-sm: 0 1px 6px rgba(236, 72, 153, 0.04);
+  --btn-text: #FFFFFF;
+  --danger: #DC3545;
+  --danger-bg: rgba(220, 53, 69, 0.08);
+  --success: #28A745;
+  --whatsapp: #25D366;
+  --recipe: #E07830;
+  --location: #3ABB8A;
 }
-/* 🩵 Sky Blue */
+
+/* Sky Blue Theme */
 [data-theme="skyblue"] {
-  --bg:#050F1A; --bg2:#081828; --bg3:#0C2030;
-  --s1:#102A3E; --s2:#16344C; --s3:#1C3E5A;
-  --bd:rgba(30,170,255,0.13); --bd2:rgba(30,170,255,0.28);
-  --a1:#1EAAFF; --a2:#0088E0; --a3:#006AB8;
-  --tx:#E6F4FF; --tx2:#70C4FF; --tx3:#2A6888;
-  --nav-bg:#081828; --shadow:0 4px 20px rgba(0,0,0,0.50);
-  --shadow-sm:0 1px 6px rgba(0,0,0,0.30); --btn-text:#020C18;
-  --danger:#FF5F6D; --danger-bg:rgba(255,95,109,0.14);
-  --success:#3DD9A0; --whatsapp:#25D366; --recipe:#FF9F5A; --location:#70E8FF;
+  --bg: #F0F9FF;
+  --bg2: #FFFFFF;
+  --bg3: #E8F4FE;
+  --s1: #FFFFFF;
+  --s2: #F8FCFF;
+  --s3: #E8F4FE;
+  --bd: rgba(14, 165, 233, 0.10);
+  --bd2: rgba(14, 165, 233, 0.18);
+  --a1: #0EA5E9;
+  --a2: #0284C7;
+  --a3: #0369A1;
+  --tx: #0C2A3E;
+  --tx2: #5A7A8A;
+  --tx3: #8AAABA;
+  --nav-bg: #FFFFFF;
+  --shadow: 0 2px 12px rgba(14, 165, 233, 0.08);
+  --shadow-sm: 0 1px 6px rgba(14, 165, 233, 0.04);
+  --btn-text: #FFFFFF;
+  --danger: #DC3545;
+  --danger-bg: rgba(220, 53, 69, 0.08);
+  --success: #28A745;
+  --whatsapp: #25D366;
+  --recipe: #E07830;
+  --location: #3ABB8A;
 }
-/* 🟢 Lime Green */
+
+/* Lime Green Theme */
 [data-theme="limegreen"] {
-  --bg:#071008; --bg2:#0C180D; --bg3:#101E11;
-  --s1:#162614; --s2:#1C2E1A; --s3:#223620;
-  --bd:rgba(100,230,50,0.13); --bd2:rgba(100,230,50,0.28);
-  --a1:#64E632; --a2:#4CC420; --a3:#38A012;
-  --tx:#EDFAE8; --tx2:#90D870; --tx3:#3A6828;
-  --nav-bg:#0C180D; --shadow:0 4px 20px rgba(0,0,0,0.50);
-  --shadow-sm:0 1px 6px rgba(0,0,0,0.30); --btn-text:#051004;
-  --danger:#FF5F6D; --danger-bg:rgba(255,95,109,0.14);
-  --success:#00E676; --whatsapp:#25D366; --recipe:#FFD050; --location:#B0FF70;
+  --bg: #F5FEF0;
+  --bg2: #FFFFFF;
+  --bg3: #EEFDE8;
+  --s1: #FFFFFF;
+  --s2: #FAFEF8;
+  --s3: #EEFDE8;
+  --bd: rgba(34, 197, 94, 0.10);
+  --bd2: rgba(34, 197, 94, 0.18);
+  --a1: #22C55E;
+  --a2: #16A34A;
+  --a3: #15803D;
+  --tx: #1A2E1E;
+  --tx2: #6A8A6A;
+  --tx3: #9ABA9A;
+  --nav-bg: #FFFFFF;
+  --shadow: 0 2px 12px rgba(34, 197, 94, 0.08);
+  --shadow-sm: 0 1px 6px rgba(34, 197, 94, 0.04);
+  --btn-text: #FFFFFF;
+  --danger: #DC3545;
+  --danger-bg: rgba(220, 53, 69, 0.08);
+  --success: #22C55E;
+  --whatsapp: #25D366;
+  --recipe: #E07830;
+  --location: #16A34A;
 }
-/* 🟠 Dark Orange */
+
+/* Orange Theme */
 [data-theme="darkorange"] {
-  --bg:#120800; --bg2:#1C0E00; --bg3:#221200;
-  --s1:#301800; --s2:#3A1E00; --s3:#462400;
-  --bd:rgba(255,110,0,0.14); --bd2:rgba(255,110,0,0.30);
-  --a1:#FF6E00; --a2:#E05600; --a3:#B84000;
-  --tx:#FFF0E0; --tx2:#FFAA60; --tx3:#7A4010;
-  --nav-bg:#1C0E00; --shadow:0 4px 20px rgba(0,0,0,0.55);
-  --shadow-sm:0 1px 6px rgba(0,0,0,0.35); --btn-text:#120500;
-  --danger:#FF5F6D; --danger-bg:rgba(255,95,109,0.14);
-  --success:#3DD9A0; --whatsapp:#25D366; --recipe:#FFD050; --location:#FFB347;
+  --bg: #FFF8F0;
+  --bg2: #FFFFFF;
+  --bg3: #FEF2E8;
+  --s1: #FFFFFF;
+  --s2: #FFFAF5;
+  --s3: #FEF2E8;
+  --bd: rgba(249, 115, 22, 0.10);
+  --bd2: rgba(249, 115, 22, 0.18);
+  --a1: #F97316;
+  --a2: #EA580C;
+  --a3: #C2410C;
+  --tx: #2E1E0E;
+  --tx2: #8A6A4A;
+  --tx3: #B89A7A;
+  --nav-bg: #FFFFFF;
+  --shadow: 0 2px 12px rgba(249, 115, 22, 0.08);
+  --shadow-sm: 0 1px 6px rgba(249, 115, 22, 0.04);
+  --btn-text: #FFFFFF;
+  --danger: #DC3545;
+  --danger-bg: rgba(220, 53, 69, 0.08);
+  --success: #28A745;
+  --whatsapp: #25D366;
+  --recipe: #F97316;
+  --location: #EA580C;
 }
 
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -350,7 +549,65 @@ input:checked + .toggle-slider:before { transform:translateX(16px); }
 .tracking-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border-radius:20px; font-size:9.5px; font-weight:700; background:rgba(110,231,183,.15); color:#3ABB8A; }
 .tracking-dot { width:5px; height:5px; border-radius:50%; background:#3ABB8A; animation:pulse 1.5s infinite; flex-shrink:0; }
 @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+.btn-p, .find-btn, .btn-recipe, .btn-location {
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+.card {
+  backdrop-filter: blur(0px);
+}
+input, textarea, select {
+  background: var(--bg3);
+  color: var(--tx);
+  border-color: var(--bd);
+}
+input:focus, textarea:focus {
+  border-color: var(--a1);
+  box-shadow: 0 0 0 2px var(--bd2);
+}
+.pull-to-refresh {
+  position: relative;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.refresh-indicator {
+  position: absolute;
+  top: -50px;
+  left: 0;
+  right: 0;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--tx2);
+  font-size: 12px;
+  transition: top 0.2s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+.refresh-indicator.show {
+  top: 0;
+}
+
+.refresh-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--bd2);
+  border-top-color: var(--a1);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.refresh-icon {
+  font-size: 20px;
+}
+
 </style>
+
 </head>
 <body>
 <div id="app"></div>
@@ -424,21 +681,22 @@ const stopAutoLocationTracking = () => {
 
 // ============ THEME ============
 const THEMES = [
-  { id:'turquoise',  label:'Turquoise', icon:'🩵', preview:'linear-gradient(135deg,#0A0E1A,#1E90FF)' },
-  { id:'light',      label:'Light',     icon:'☀️',  preview:'linear-gradient(135deg,#EFF5F9,#0088A0)' },
-  { id:'redblack',   label:'Red',       icon:'🔴', preview:'linear-gradient(135deg,#100608,#FF1E3C)' },
-  { id:'bluepink',   label:'Purple',    icon:'💜', preview:'linear-gradient(135deg,#07091A,#C86EF0)' },
-  { id:'pink',       label:'Pink',      icon:'🩷', preview:'linear-gradient(135deg,#180A10,#FF50A0)' },
-  { id:'skyblue',    label:'Sky Blue',  icon:'💙', preview:'linear-gradient(135deg,#050F1A,#1EAAFF)' },
-  { id:'limegreen',  label:'Lime',      icon:'🟢', preview:'linear-gradient(135deg,#071008,#64E632)' },
-  { id:'darkorange', label:'Orange',    icon:'🟠', preview:'linear-gradient(135deg,#120800,#FF6E00)' },
+  { id: 'light',      label: 'Light',     icon: '☀️',  preview: 'linear-gradient(135deg,#F5F7FA,#0088A0)' },
+  { id: 'turquoise',  label: 'Turquoise', icon: '💙', preview: 'linear-gradient(135deg,#F0F7FF,#1E90FF)' },
+  { id: 'dark',       label: 'Dark',      icon: '🌙',  preview: 'linear-gradient(135deg,#0F1117,#4A9EFF)' },
+  { id: 'redblack',   label: 'Red',       icon: '🔴', preview: 'linear-gradient(135deg,#FEF5F5,#DC3545)' },
+  { id: 'bluepink',   label: 'Purple',    icon: '💜', preview: 'linear-gradient(135deg,#F8F5FE,#8B5CF6)' },
+  { id: 'pink',       label: 'Pink',      icon: '🩷', preview: 'linear-gradient(135deg,#FEF5F8,#EC4899)' },
+  { id: 'skyblue',    label: 'Sky Blue',  icon: '🩵', preview: 'linear-gradient(135deg,#F0F9FF,#0EA5E9)' },
+  { id: 'limegreen',  label: 'Lime',      icon: '🟢', preview: 'linear-gradient(135deg,#F5FEF0,#22C55E)' },
+  { id: 'darkorange', label: 'Orange',    icon: '🟠', preview: 'linear-gradient(135deg,#FFF8F0,#F97316)' },
 ];
-const getTheme = () => localStorage.getItem('fv_theme') || 'dark';
+const getTheme = () => localStorage.getItem('fv_theme') || 'light';
 const setTheme = (t) => {
   localStorage.setItem('fv_theme', t);
   document.documentElement.setAttribute('data-theme', t);
   const btn = document.getElementById('themeToggleBtn');
-  if (btn) { const th = THEMES.find(x=>x.id===t); btn.textContent = th ? th.icon : '🌙'; }
+if (btn) { const th = THEMES.find(x=>x.id===t); btn.textContent = th ? th.icon : '🌈'; }
 };
 const toggleTheme = () => {
   const idx = THEMES.findIndex(x => x.id === getTheme());
@@ -616,7 +874,10 @@ const deleteFolderFromCloud = async (folderId) => { try { const r = await sbFetc
 // ============ USERS ============
 const getUsers = async () => { try { const r = await sbFetch('users?select=*', 'GET'); if (r.ok) return r.json(); } catch(e) {} return []; };
 const addUser = async (username, phone, password, securityQuestion, securityAnswer) => { const r = await sbFetch('users', 'POST', { username, phone, password, role: 'user', security_question: securityQuestion, security_answer: securityAnswer.toLowerCase(), created_at: new Date().toISOString() }); return r.ok; };
-const updateUser = async (username, updates) => { const r = await sbFetch(`users?username=eq.${encodeURIComponent(username)}`, 'PATCH', updates); return r.ok; };
+const updateUser = async (username, updates) => { 
+  const r = await sbFetch(`users?username=eq.${encodeURIComponent(username)}`, 'PATCH', updates); 
+  return r.ok; 
+};
 const deleteUser = async (username) => { if (ADMINS.some(a => a.username === username)) { showMessage('Cannot delete admin', 'error'); return false; } const r = await sbFetch(`users?username=eq.${encodeURIComponent(username)}`, 'DELETE'); return r.ok; };
 
 // ============ CALENDAR ============
@@ -625,18 +886,47 @@ const loadCalendarEvents = async () => {
     const r = await sbFetch('calendar_events?select=*&order=event_date.asc', 'GET');
     if (r.ok) {
       const data = await r.json();
-      calendarEvents = data.map(e => ({ id: e.id, title: e.title, description: e.description || '', eventDate: e.event_date, eventType: e.event_type || 'event', createdBy: e.created_by, createdAt: e.created_at }));
+      calendarEvents = data.map(e => ({ 
+        id: e.id, 
+        title: e.title, 
+        description: e.description || '', 
+        eventDate: e.event_date, 
+        eventType: e.event_type || 'event', 
+        yearOfBirth: e.year_of_birth || null,
+        createdBy: e.created_by, 
+        createdAt: e.created_at 
+      }));
     }
   } catch(e) { console.error('Error loading calendar:', e); }
   return calendarEvents;
 };
 const saveCalendarEvent = async (ev) => {
   try {
-    const r = await sbFetch('calendar_events', 'POST', { id: ev.id, title: ev.title, description: ev.description || '', event_date: ev.eventDate, event_type: ev.eventType || 'event', created_by: ev.createdBy, created_at: ev.createdAt || new Date().toISOString() });
+    const r = await sbFetch('calendar_events', 'POST', { 
+      id: ev.id, 
+      title: ev.title, 
+      description: ev.description || '', 
+      event_date: ev.eventDate, 
+      event_type: ev.eventType || 'event', 
+      year_of_birth: ev.yearOfBirth || null,
+      created_by: ev.createdBy, 
+      created_at: ev.createdAt || new Date().toISOString() 
+    });
     return r.ok;
   } catch(e) { return false; }
 };
-const updateCalendarEvent = async (ev) => { try { const r = await sbFetch(`calendar_events?id=eq.${ev.id}`, 'PATCH', { title: ev.title, description: ev.description, event_date: ev.eventDate, event_type: ev.eventType }); return r.ok; } catch(e) { return false; } };
+const updateCalendarEvent = async (ev) => { 
+  try { 
+    const r = await sbFetch(`calendar_events?id=eq.${ev.id}`, 'PATCH', { 
+      title: ev.title, 
+      description: ev.description, 
+      event_date: ev.eventDate, 
+      event_type: ev.eventType,
+      year_of_birth: ev.yearOfBirth || null
+    }); 
+    return r.ok; 
+  } catch(e) { return false; } 
+};
 const deleteCalendarEventFromCloud = async (id) => { try { const r = await sbFetch(`calendar_events?id=eq.${id}`, 'DELETE'); return r.ok; } catch(e) { return false; } };
 
 // ============ RECIPES ============
@@ -710,10 +1000,27 @@ const openAddEventModal = (prefillDate) => {
       <input type="text" id="evTitle" placeholder="Event title" autocomplete="off">
       <input type="date" id="evDate" value="${escapeHtml(prefillDate || today)}">
       <select id="evType">${Object.entries(EVENT_TYPES).map(([k,v]) => `<option value="${k}">${v.icon} ${v.label}</option>`).join('')}</select>
+      <div id="yearOfBirthGroup" style="display:none">
+        <input type="number" id="evYearOfBirth" placeholder="Year of birth (e.g. 1990)" min="1900" max="${new Date().getFullYear()}">
+      </div>
       <textarea id="evDesc" placeholder="Description (optional)" style="margin-bottom:8px"></textarea>
       <div id="evModalMsg"></div>
       <div class="modal-buttons"><button class="btn btn-p" onclick="doAddEvent()">Save Event</button><button class="btn btn-gh" onclick="closeCalModal()">Cancel</button></div>
     </div>`;
+  
+  // Show/hide year of birth field based on event type
+  const typeSelect = overlay.querySelector('#evType');
+  const yearGroup = overlay.querySelector('#yearOfBirthGroup');
+  const toggleYearField = () => {
+    if (typeSelect.value === 'birthday') {
+      yearGroup.style.display = 'block';
+    } else {
+      yearGroup.style.display = 'none';
+    }
+  };
+  typeSelect.addEventListener('change', toggleYearField);
+  toggleYearField();
+  
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeCalModal(); });
   document.body.appendChild(overlay);
   setTimeout(() => document.getElementById('evTitle')?.focus(), 100);
@@ -729,10 +1036,25 @@ const openEditEventModal = (id) => {
       <input type="text" id="evTitle" placeholder="Event title" value="${escapeHtml(ev.title)}" autocomplete="off">
       <input type="date" id="evDate" value="${escapeHtml(ev.eventDate)}">
       <select id="evType">${Object.entries(EVENT_TYPES).map(([k,v]) => `<option value="${k}" ${k===ev.eventType?'selected':''}>${v.icon} ${v.label}</option>`).join('')}</select>
+      <div id="yearOfBirthGroup" style="${ev.eventType === 'birthday' ? 'display:block' : 'display:none'}">
+        <input type="number" id="evYearOfBirth" placeholder="Year of birth" value="${ev.yearOfBirth || ''}" min="1900" max="${new Date().getFullYear()}">
+      </div>
       <textarea id="evDesc" placeholder="Description (optional)" style="margin-bottom:8px">${escapeHtml(ev.description)}</textarea>
       <div id="evModalMsg"></div>
       <div class="modal-buttons"><button class="btn btn-p" onclick="doEditEvent(${id})">Save Changes</button><button class="btn btn-gh" onclick="closeCalModal()">Cancel</button></div>
     </div>`;
+  
+  const typeSelect = overlay.querySelector('#evType');
+  const yearGroup = overlay.querySelector('#yearOfBirthGroup');
+  const toggleYearField = () => {
+    if (typeSelect.value === 'birthday') {
+      yearGroup.style.display = 'block';
+    } else {
+      yearGroup.style.display = 'none';
+    }
+  };
+  typeSelect.addEventListener('change', toggleYearField);
+  
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeCalModal(); });
   document.body.appendChild(overlay);
 };
@@ -740,29 +1062,59 @@ const doAddEvent = async () => {
   const title = document.getElementById('evTitle')?.value.trim();
   const date = document.getElementById('evDate')?.value;
   const type = document.getElementById('evType')?.value;
+  const yearOfBirth = document.getElementById('evYearOfBirth')?.value;
   const desc = document.getElementById('evDesc')?.value.trim();
   const msgEl = document.getElementById('evModalMsg');
   if (!title) { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter a title.</div>`; return; }
   if (!date) { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please select a date.</div>`; return; }
+  if (type === 'birthday' && yearOfBirth && (yearOfBirth < 1900 || yearOfBirth > new Date().getFullYear())) {
+    if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter a valid year.</div>`; return;
+  }
   if (msgEl) msgEl.innerHTML = `<div class="al al-i">Saving...</div>`;
-  const newEv = { id: Date.now(), title, eventDate: date, eventType: type, description: desc || '', createdBy: currentUser.username, createdAt: new Date().toISOString() };
+  const newEv = { 
+    id: Date.now(), 
+    title, 
+    eventDate: date, 
+    eventType: type, 
+    description: desc || '', 
+    yearOfBirth: type === 'birthday' ? (yearOfBirth || null) : null,
+    createdBy: currentUser.username, 
+    createdAt: new Date().toISOString() 
+  };
   const saved = await saveCalendarEvent(newEv);
-  if (saved) { calendarEvents.push(newEv); calendarEvents.sort((a,b) => a.eventDate.localeCompare(b.eventDate)); closeCalModal(); showMessage('Event added! 🎉', 'success'); renderCalendar(); notifyNewEvent(title, currentUser.username); }
+  if (saved) { 
+    calendarEvents.push(newEv); 
+    calendarEvents.sort((a,b) => a.eventDate.localeCompare(b.eventDate)); 
+    closeCalModal(); 
+    showMessage('Event added! 🎉', 'success'); 
+    renderCalendar(); 
+    notifyNewEvent(title, currentUser.username); 
+  }
   else { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Error saving. Check Supabase table setup.</div>`; }
 };
 const doEditEvent = async (id) => {
   const title = document.getElementById('evTitle')?.value.trim();
   const date = document.getElementById('evDate')?.value;
   const type = document.getElementById('evType')?.value;
+  const yearOfBirth = document.getElementById('evYearOfBirth')?.value;
   const desc = document.getElementById('evDesc')?.value.trim();
   const msgEl = document.getElementById('evModalMsg');
   if (!title) { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter a title.</div>`; return; }
   if (!date) { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please select a date.</div>`; return; }
   if (msgEl) msgEl.innerHTML = `<div class="al al-i">Saving...</div>`;
   const ev = calendarEvents.find(e => e.id === id); if (!ev) return;
-  ev.title = title; ev.eventDate = date; ev.eventType = type; ev.description = desc || '';
+  ev.title = title; 
+  ev.eventDate = date; 
+  ev.eventType = type; 
+  ev.yearOfBirth = type === 'birthday' ? (yearOfBirth || null) : null;
+  ev.description = desc || '';
   const updated = await updateCalendarEvent(ev);
-  if (updated) { calendarEvents.sort((a,b) => a.eventDate.localeCompare(b.eventDate)); closeCalModal(); showMessage('Event updated!', 'success'); renderCalendar(); }
+  if (updated) { 
+    calendarEvents.sort((a,b) => a.eventDate.localeCompare(b.eventDate)); 
+    closeCalModal(); 
+    showMessage('Event updated!', 'success'); 
+    renderCalendar(); 
+  }
   else { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Error updating event.</div>`; }
 };
 const confirmDeleteEvent = async (id) => {
@@ -867,7 +1219,7 @@ const openEditRecipeModal = (id) => {
       </div>
       <input type="file" id="recipeImageInput" accept="image/*" style="display:none" onchange="handleRecipeImageSelect(this)">
       <input type="file" id="recipeCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleRecipeImageSelect(this)">
-      <div id="recipeImgPreview">${pendingRecipeImageData ? `<div class="img-preview-wrap"><img src="${pendingRecipeImageData}"><button class="remove-img" onclick="clearRecipeImage()">✕</button></div>` : ''}</div>
+      <div id="recipeImgPreview">${pendingRecipeImageData ? `<div class="img-preview-wrap"><img src="${pendingRecipeImageData}"><button class="remove-img" onclick="clearRecipeImage()">?</button></div>` : ''}</div>
       <div id="recipeModalMsg"></div>
       <div class="modal-buttons">
         <button class="btn btn-recipe" onclick="doSaveRecipe()">Save Changes</button>
@@ -885,9 +1237,9 @@ const handleRecipeImageSelect = async (input) => {
   const file = input.files?.[0]; if (!file) return;
   try {
     const preview = document.getElementById('recipeImgPreview');
-    if (preview) preview.innerHTML = `<div class="al al-i" style="text-align:center">⏳ Compressing image…</div>`;
+    if (preview) preview.innerHTML = `<div class="al al-i" style="text-align:center">? Compressing image…</div>`;
     pendingRecipeImageData = await compressImage(file, 1200, 0.78);
-    if (preview) preview.innerHTML = `<div class="img-preview-wrap"><img src="${pendingRecipeImageData}"><button class="remove-img" onclick="clearRecipeImage()">✕</button></div>`;
+    if (preview) preview.innerHTML = `<div class="img-preview-wrap"><img src="${pendingRecipeImageData}"><button class="remove-img" onclick="clearRecipeImage()">?</button></div>`;
   } catch(err) {
     showMessage('Could not process image. Please try another.', 'error');
     console.error('Recipe image compress error:', err);
@@ -1009,7 +1361,7 @@ const openProfilePicModal = () => {
       <div class="modal-title">🖼️ Profile Picture</div>
       <div class="modal-sub">Choose how to add your profile photo</div>
       <div id="avatarPreviewWrap" style="${existing ? '' : 'display:none'}">
-        ${existing ? `<div class="img-preview-wrap"><img src="${existing}"><button class="remove-img" onclick="clearAvatarPreview()">✕</button></div>` : ''}
+        ${existing ? `<div class="img-preview-wrap"><img src="${existing}"><button class="remove-img" onclick="clearAvatarPreview()">?</button></div>` : ''}
       </div>
       <div class="img-upload-options">
         <div class="img-upload-option" onclick="triggerAvatarCamera()"><span class="upload-icon">📸</span>Take Selfie</div>
@@ -1037,9 +1389,9 @@ const handleAvatarSelect = async (input) => {
   const file = input.files?.[0]; if (!file) return;
   try {
     const wrap = document.getElementById('avatarPreviewWrap');
-    if (wrap) { wrap.style.display = 'block'; wrap.innerHTML = `<div class="al al-i" style="text-align:center">⏳ Compressing image…</div>`; }
+    if (wrap) { wrap.style.display = 'block'; wrap.innerHTML = `<div class="al al-i" style="text-align:center">? Compressing image…</div>`; }
     pendingAvatarData = await compressImage(file, 600, 0.82);
-    if (wrap) { wrap.style.display = 'block'; wrap.innerHTML = `<div class="img-preview-wrap"><img src="${pendingAvatarData}"><button class="remove-img" onclick="clearAvatarPreview()">✕</button></div>`; }
+    if (wrap) { wrap.style.display = 'block'; wrap.innerHTML = `<div class="img-preview-wrap"><img src="${pendingAvatarData}"><button class="remove-img" onclick="clearAvatarPreview()">?</button></div>`; }
   } catch(err) {
     showMessage('Could not process image. Please try another.', 'error');
     console.error('Avatar compress error:', err);
@@ -1065,7 +1417,7 @@ const renderApp = () => {
   document.getElementById('app').innerHTML = `
     <div class="tbw">
       <div class="tb">
-        <div class="logo"><div class="logo-icon">☁️</div>Family Vault</div>
+         <div class="logo"><div class="logo-icon">☁️</div>Family Vault</div>
         <div class="tb-r">
           <button id="themeToggleBtn" class="icon-btn" onclick="toggleTheme()" title="Toggle theme">${(THEMES.find(x=>x.id===theme)||THEMES[0]).icon}</button>
           <div class="av" onclick="openProfilePicModal()" title="Change profile picture">
@@ -1092,7 +1444,7 @@ const renderApp = () => {
         </div>
       </div>
       <div class="menu-items">
-        <div class="menu-item ${currentView==='home'?'active':''}" onclick="navigateTo('home')"><span class="mi-icon">🏠</span> Home</div>
+                <div class="menu-item ${currentView==='home'?'active':''}" onclick="navigateTo('home')"><span class="mi-icon">🏠</span> Home</div>
         <div class="menu-item ${currentView==='folders'?'active':''}" onclick="navigateTo('folders')"><span class="mi-icon">📁</span> Folders</div>
         <div class="menu-item ${currentView==='calendar'?'active':''}" onclick="navigateTo('calendar')"><span class="mi-icon">📅</span> Calendar</div>
         <div class="menu-item ${currentView==='recipes'?'active':''}" onclick="navigateTo('recipes')"><span class="mi-icon">🍳</span> Recipes</div>
@@ -1122,6 +1474,7 @@ const renderApp = () => {
       <button class="nav-tab ${currentView==='recipes'?'active':''}" onclick="navigateTo('recipes')"><span class="nt-icon">🍳</span><span class="nt-label">Recipes</span></button>
       <button class="nav-tab ${currentView==='contacts'?'active':''}" onclick="navigateTo('contacts')"><span class="nt-icon">👥</span><span class="nt-label">Family</span></button>
     </div>
+    
   `;
 
   if (currentView === 'home') renderHome();
@@ -1131,6 +1484,7 @@ const renderApp = () => {
   if (currentView === 'contacts') renderContacts();
   if (currentView === 'settings') renderSettings();
   if (isAdmin && currentView === 'admin') renderAdminPanel();
+  setTimeout(initPullToRefresh, 100);
 };
 
 // ============ RENDER: HOME ============
@@ -1149,11 +1503,18 @@ const renderHome = () => {
     ${upcomingEvents.length > 0 ? `
       <div class="card" style="padding-bottom:6px">
         <div class="ctitle">📅 Upcoming Events</div>
-        ${upcomingEvents.map(ev => {
-          const et = EVENT_TYPES[ev.eventType] || EVENT_TYPES.event;
-          const [y,m,d] = ev.eventDate.split('-');
-          return `<div class="upcoming-strip"><div class="udb"><div class="udb-day">${parseInt(d)}</div><div class="udb-mon">${shortMonth(parseInt(m)-1)}</div></div><div style="flex:1;min-width:0"><div style="font-weight:800;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${et.icon} ${escapeHtml(ev.title)}</div><div style="font-size:10px;color:var(--tx3);margin-top:1px">${escapeHtml(ev.createdBy)}</div></div><span class="event-badge ${et.badgeClass}">${et.label}</span></div>`;
-        }).join('')}
+       ${upcomingEvents.map(ev => {
+  const et = EVENT_TYPES[ev.eventType] || EVENT_TYPES.event;
+  const [y,m,d] = ev.eventDate.split('-');
+  let ageDisplay = '';
+  if (ev.eventType === 'birthday' && ev.yearOfBirth) {
+    const birthYear = parseInt(ev.yearOfBirth);
+    const eventDateObj = new Date(ev.eventDate);
+    let age = eventDateObj.getFullYear() - birthYear;
+    ageDisplay = `<div style="font-size:8px;color:var(--a1);margin-top:2px">🎂 Turning ${age}</div>`;
+  }
+  return `<div class="upcoming-strip"><div class="udb"><div class="udb-day">${parseInt(d)}</div><div class="udb-mon">${shortMonth(parseInt(m)-1)}</div></div><div style="flex:1;min-width:0"><div style="font-weight:800;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${et.icon} ${escapeHtml(ev.title)}</div>${ageDisplay}<div style="font-size:10px;color:var(--tx3);margin-top:1px">${escapeHtml(ev.createdBy)}</div></div><span class="event-badge ${et.badgeClass}">${et.label}</span></div>`;
+}).join('')}
         <button class="btn btn-gh btn-w" style="margin-top:6px;font-size:11px" onclick="navigateTo('calendar')">View Full Calendar →</button>
       </div>
     ` : ''}
@@ -1208,7 +1569,7 @@ const renderFolderView = () => {
               <div class="folder-icon">📁</div>
               <div class="folder-name">${escapeHtml(folder.name)}</div>
               <div style="font-size:9px;color:var(--tx3);margin-top:3px">${escapeHtml(folder.createdBy)} · ${new Date(folder.createdAt).toLocaleDateString()}</div>
-              ${folder.driveLink ? '<div style="font-size:9px;color:var(--a1);margin-top:4px;font-weight:700">☁️ Connected</div>' : '<div style="font-size:9px;color:var(--tx3);margin-top:4px">⚠️ No link</div>'}
+              ${folder.driveLink ? '<div style="font-size:9px;color:var(--a1);margin-top:4px;font-weight:700">☁️ Connected</div>' : '<div style="font-size:9px;color:var(--tx3);margin-top:4px">⚠️ No link</div>'}}
               <div class="folder-actions" onclick="event.stopPropagation()">
                 <button class="btn btn-sm btn-gh" onclick="showEditLinkModal(${folder.id},'${escapeHtml(folder.name)}')">🔗 Link</button>
                 ${canDeleteFolder(folder) ? `<button class="btn btn-sm btn-d" onclick="deleteFolder(${folder.id})">🗑️</button>` : ''}
@@ -1250,7 +1611,7 @@ const renderFolderView = () => {
       <div class="sh-t" style="margin-bottom:4px">${escapeHtml(folder.name)}</div>
       <div style="font-size:11px;color:var(--tx3);margin-bottom:18px">Created by ${escapeHtml(folder.createdBy)}</div>
       <button class="btn btn-p btn-lg btn-w" onclick="openCloudFolder('${escapeHtml(folder.driveLink || '')}','${escapeHtml(folder.name)}')">☁️ Open in Google Drive</button>
-      ${!folder.driveLink ? `<div class="al al-i" style="margin-top:10px">⚠️ No Google Drive link set.</div>` : ''}
+      ${!folder.driveLink ? `<div class="al al-i" style="margin-top:10px">⚠️  No Google Drive link set.</div>` : ''}
     </div>`;
 };
 
@@ -1293,8 +1654,31 @@ const renderCalendar = () => {
     ${calendarSelectedDay ? `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px"><div style="font-size:12px;font-weight:700;color:var(--a1)">📍 ${formatDate(calendarSelectedDay)}</div><div style="display:flex;gap:5px"><button class="btn btn-sm btn-p" onclick="openAddEventModal('${calendarSelectedDay}')">+ Add</button><button class="btn btn-sm btn-gh" onclick="calSelectDay('${calendarSelectedDay}')">Show All</button></div></div>` : `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--tx3)">${monthName(month)} · ${listEvents.length} event${listEvents.length!==1?'s':''}</div></div>`}
     ${listEvents.length === 0 ? `<div class="empty-state"><div class="empty-icon">🗓️</div><div class="empty-text">${calendarSelectedDay ? 'No events on this day' : 'No events this month'}</div><div class="empty-sub">Tap a day or use "+ Add"</div></div>` : listEvents.map(ev => {
       const et = EVENT_TYPES[ev.eventType] || EVENT_TYPES.event, canEdit = canEditEvent(ev);
-      return `<div class="event-card"><div class="event-icon ${et.iconClass}">${et.icon}</div><div style="flex:1;min-width:0"><div class="event-title">${escapeHtml(ev.title)}</div><div style="margin-top:2px"><span class="event-badge ${et.badgeClass}">${et.label}</span></div><div class="event-date-label" style="margin-top:4px">📅 ${formatDateFull(ev.eventDate)}</div>${ev.description ? `<div class="event-desc">${escapeHtml(ev.description)}</div>` : ''}<div class="event-date-label" style="margin-top:4px">👤 ${escapeHtml(ev.createdBy)}</div>${canEdit ? `<div class="event-actions"><button class="btn btn-sm btn-gh" onclick="openEditEventModal(${ev.id})">✏️ Edit</button><button class="btn btn-sm btn-d" onclick="confirmDeleteEvent(${ev.id})">🗑️ Delete</button></div>` : ''}</div></div>`;
-    }).join('')}`;
+      let ageDisplay = '';
+if (ev.eventType === 'birthday' && ev.yearOfBirth) {
+  const birthYear = parseInt(ev.yearOfBirth);
+  const eventDateObj = new Date(ev.eventDate);
+  const todayDate = new Date();
+  let age = eventDateObj.getFullYear() - birthYear;
+  const birthMonth = eventDateObj.getMonth();
+  const birthDay = eventDateObj.getDate();
+  const todayMonth = todayDate.getMonth();
+  const todayDay = todayDate.getDate();
+  
+  let willTurnAge = age;
+  let currentAge = age - 1;
+  
+  const hasPassed = (todayMonth > birthMonth) || (todayMonth === birthMonth && todayDay >= birthDay);
+  
+  if (hasPassed) {
+    ageDisplay = `<div style="font-size:10px;color:var(--a1);margin-top:2px">🎂 Turns ${age} years old (${currentAge} currently)</div>`;
+  } else {
+    ageDisplay = `<div style="font-size:10px;color:var(--a1);margin-top:2px">🎂 Will turn ${age} years old</div>`;
+  }
+}
+      return `<div class="event-card"><div class="event-icon ${et.iconClass}">${et.icon}</div><div style="flex:1;min-width:0"><div class="event-title">${escapeHtml(ev.title)}</div><div style="margin-top:2px"><span class="event-badge ${et.badgeClass}">${et.label}</span></div><div class="event-date-label" style="margin-top:4px">📅 ${formatDateFull(ev.eventDate)}</div>${ageDisplay}${ev.description ? `<div class="event-desc">${escapeHtml(ev.description)}</div>` : ''}<div class="event-date-label" style="margin-top:4px">👤 ${escapeHtml(ev.createdBy)}</div>${canEdit ? `<div class="event-actions"><button class="btn btn-sm btn-gh" onclick="openEditEventModal(${ev.id})">✏️ Edit</button><button class="btn btn-sm btn-d" onclick="confirmDeleteEvent(${ev.id})">🗑️ Delete</button></div>` : ''}</div></div>`;
+    }).join('')}
+  `;
 };
 
 // ============ RENDER: RECIPES ============
@@ -1321,8 +1705,8 @@ const renderRecipes = () => {
           <div class="recipe-title">${escapeHtml(rec.title)}</div>
           <div class="recipe-meta">
             <span class="recipe-badge">${RECIPE_CATEGORIES[rec.category] || '🍴 Other'}</span>
-            ${rec.prep_time ? `<span class="recipe-badge">⏱️ ${escapeHtml(rec.prep_time)}</span>` : ''}
-            ${rec.servings ? `<span class="recipe-badge">👥 ${escapeHtml(rec.servings)}</span>` : ''}
+           ${rec.prep_time ? `<span class="recipe-badge">⏱️ ${escapeHtml(rec.prep_time)}</span>` : ''}
+${rec.servings ? `<span class="recipe-badge">👥 ${escapeHtml(rec.servings)}</span>` : ''}
           </div>
           ${rec.description ? `<div class="recipe-desc">${escapeHtml(rec.description)}</div>` : ''}
           <div style="font-size:10px;color:var(--tx3);margin-top:6px;font-weight:600">👨‍🍳 ${escapeHtml(rec.createdBy)} · ${new Date(rec.createdAt).toLocaleDateString()}</div>
@@ -1339,7 +1723,7 @@ const renderRecipeDetail = (id) => {
   const instructionsList = rec.instructions.split('\n').filter(l => l.trim()).map((l, i) => `<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd)"><div style="background:var(--a1);color:var(--btn-text);border-radius:7px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex-shrink:0;margin-top:1px">${i+1}</div><div style="font-size:12px;color:var(--tx2);line-height:1.55">${escapeHtml(l.trim())}</div></div>`).join('');
   container.innerHTML = `
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap">
-      <span style="color:var(--a1);cursor:pointer;font-weight:700;font-size:13px" onclick="backToRecipeList()">🍳 Recipes</span>
+      <span style="color:var(--a1);cursor:pointer;font-weight:700;font-size:13px" onclick="backToRecipeList()">🍳  Recipes</span>
       <span style="color:var(--tx3)">›</span>
       <span style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">${escapeHtml(rec.title)}</span>
     </div>
@@ -1349,7 +1733,7 @@ const renderRecipeDetail = (id) => {
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
         <span class="recipe-badge">${RECIPE_CATEGORIES[rec.category] || '🍴 Other'}</span>
         ${rec.prep_time ? `<span class="recipe-badge">⏱️ ${escapeHtml(rec.prep_time)}</span>` : ''}
-        ${rec.servings ? `<span class="recipe-badge">👥 Serves ${escapeHtml(rec.servings)}</span>` : ''}
+        ${rec.servings ? `<span class="recipe-badge">👥 ${escapeHtml(rec.servings)}</span>` : ''}
       </div>
       ${rec.description ? `<div style="font-size:12px;color:var(--tx2);margin-bottom:8px;line-height:1.55">${escapeHtml(rec.description)}</div>` : ''}
       <div style="font-size:10px;color:var(--tx3);font-weight:600">👨‍🍳 Shared by ${escapeHtml(rec.createdBy)} · ${new Date(rec.createdAt).toLocaleDateString()}</div>
@@ -1419,9 +1803,10 @@ const renderContacts = async () => {
         </div>`).join('')}
     </div>` : ''}
 
+
     <!-- FAMILY MEMBERS -->
     <div style="font-size:13px;font-weight:800;color:var(--tx);margin:8px 0 8px">👥 Members</div>
-    ${others.length === 0 ? `<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">No other members yet</div></div>` : others.map(u => {
+    ${others.length === 0 ? `<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-text">No other members yet</div></div>` : others.map(u => {
       const uprof = userProfiles[u.username];
       const canFind = uprof?.sharing_with?.includes(currentUser.username) && uprof?.location_lat;
       const isSharing = uprof?.sharing_with?.includes(currentUser.username);
@@ -1430,7 +1815,10 @@ const renderContacts = async () => {
         <div class="ccard">
           <div class="c-av">${avatarHtml(u.username, 40, 12)}</div>
           <div style="flex:1;min-width:0">
-            <div style="font-weight:800;font-size:13px">${escapeHtml(u.username)}</div>
+            <div style="font-weight:800;font-size:13px">
+  ${escapeHtml(u.username)}
+  ${u.role === 'admin' ? '<span style="font-size:9px;color:var(--a1);margin-left:5px">👑 Admin</span>' : ''}
+</div>
             <div style="font-size:10px;color:var(--tx3);margin-top:1px">📞 ${escapeHtml(u.phone)}</div>
             <div style="margin-top:3px;display:flex;align-items:center;gap:4px">
               ${isSharing ? `<span class="location-status ls-sharing">📍 Sharing</span>` : `<span class="location-status ls-private">🔒 Private</span>`}
@@ -1499,17 +1887,54 @@ const renderAdminPanel = async () => {
   container.innerHTML = `<div style="text-align:center;padding:16px;color:var(--tx3);font-size:12px">Loading...</div>`;
   const users = await getUsers();
   const regularUsers = users.filter(u => u.role !== 'admin');
+  const adminUsers = users.filter(u => u.role === 'admin');
+  
   container.innerHTML = `
-    <div class="sh"><div><div class="sh-t">👑 Admin Panel</div><div class="sh-s">${regularUsers.length} user${regularUsers.length!==1?'s':''}</div></div></div>
+    <div class="sh"><div><div class="sh-t">👑 Admin Panel</div><div class="sh-s">${users.length} total users</div></div></div>
+    
+    <!-- Current Admins -->
     <div class="card">
-      <div class="ctitle">👥 User Management</div>
-      ${regularUsers.length === 0 ? `<div class="empty-state" style="padding:16px"><div class="empty-icon">👤</div><div class="empty-text">No users yet</div></div>` : regularUsers.map(user => `
+      <div class="ctitle">👑 Administrators (${adminUsers.length})</div>
+      ${adminUsers.length === 0 ? `<div class="empty-state" style="padding:16px"><div class="empty-icon">👑</div><div class="empty-text">No admin users</div></div>` : adminUsers.map(user => `
         <div style="background:var(--s2);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
           <div style="width:36px;height:36px;flex-shrink:0">${avatarHtml(user.username, 36, 10)}</div>
-          <div style="flex:1;min-width:0"><div style="font-weight:800;font-size:13px">${escapeHtml(user.username)}</div><div style="font-size:10px;color:var(--tx3)">📞 ${escapeHtml(user.phone)}</div></div>
-          <button class="btn btn-sm btn-d" onclick="deleteUserAccount('${escapeHtml(user.username)}')">Delete</button>
-        </div>`).join('')}
-    </div>`;
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:800;font-size:13px">${escapeHtml(user.username)}</div>
+            <div style="font-size:10px;color:var(--tx3)">📞 ${escapeHtml(user.phone)}</div>
+            <div style="font-size:9px;color:var(--a1);margin-top:2px">👑 Admin</div>
+          </div>
+          ${user.username !== currentUser.username ? `
+            <button class="btn btn-sm btn-d" onclick="removeAdmin('${escapeHtml(user.username)}')">Remove Admin</button>
+          ` : `<span style="font-size:10px;color:var(--tx3);background:var(--bg3);padding:4px 8px;border-radius:6px">You</span>`}
+        </div>
+      `).join('')}
+    </div>
+    
+    <!-- Regular Users - Make Admin -->
+    <div class="card">
+      <div class="ctitle">👥 Regular Users (${regularUsers.length})</div>
+      ${regularUsers.length === 0 ? `<div class="empty-state" style="padding:16px"><div class="empty-icon">👤</div><div class="empty-text">No regular users</div></div>` : regularUsers.map(user => `
+        <div style="background:var(--s2);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;flex-shrink:0">${avatarHtml(user.username, 36, 10)}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:800;font-size:13px">${escapeHtml(user.username)}</div>
+            <div style="font-size:10px;color:var(--tx3)">📞 ${escapeHtml(user.phone)}</div>
+          </div>
+          <div style="display:flex;gap:5px">
+            <button class="btn btn-sm btn-p" onclick="makeUserAdmin('${escapeHtml(user.username)}')">👑 Make Admin</button>
+            <button class="btn btn-sm btn-d" onclick="deleteUserAccount('${escapeHtml(user.username)}')">🗑️ Delete</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    
+    <!-- User Stats -->
+    <div class="stats-grid" style="margin-top:8px">
+      <div class="stat-card"><div class="stat-num">${users.length}</div><div class="stat-label">Total Users</div></div>
+      <div class="stat-card"><div class="stat-num">${adminUsers.length}</div><div class="stat-label">Admins</div></div>
+      <div class="stat-card"><div class="stat-num">${regularUsers.length}</div><div class="stat-label">Regular</div></div>
+    </div>
+  `;
 };
 
 // ============ SETTINGS LOGIC ============
@@ -1599,6 +2024,171 @@ const verifySecurityAnswer = async () => {
   else { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Incorrect answer. Please try again.</div>`; const a = document.getElementById('securityAnswer'); if (a) { a.value = ''; a.focus(); } }
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ============ PULL TO REFRESH ============
+let touchStartY = 0;
+let isRefreshing = false;
+let refreshThreshold = 80;
+
+const addPullToRefresh = () => {
+  const scr = document.querySelector('.scr');
+  if (!scr) return;
+  
+  // Create refresh indicator
+  const refreshIndicator = document.createElement('div');
+  refreshIndicator.className = 'refresh-indicator';
+  refreshIndicator.innerHTML = '<div class="refresh-spinner"></div><span>Pull to refresh...</span>';
+  scr.parentElement.style.position = 'relative';
+  scr.parentElement.insertBefore(refreshIndicator, scr);
+  
+  let startY = 0;
+  let pulling = false;
+  
+  scr.addEventListener('touchstart', (e) => {
+    if (scr.scrollTop === 0 && !isRefreshing) {
+      startY = e.touches[0].clientY;
+      pulling = true;
+    }
+  });
+  
+  scr.addEventListener('touchmove', (e) => {
+    if (pulling && scr.scrollTop === 0 && !isRefreshing) {
+      const currentY = e.touches[0].clientY;
+      const distance = currentY - startY;
+      
+      if (distance > 0) {
+        e.preventDefault();
+        if (distance > refreshThreshold) {
+          refreshIndicator.innerHTML = '<div class="refresh-spinner"></div><span>Release to refresh...</span>';
+          refreshIndicator.style.top = `${Math.min(distance, refreshThreshold)}px`;
+        } else {
+          refreshIndicator.innerHTML = '<div class="refresh-spinner"></div><span>Pull to refresh...</span>';
+          refreshIndicator.style.top = `${Math.min(distance, refreshThreshold)}px`;
+        }
+      }
+    }
+  });
+  
+  scr.addEventListener('touchend', async (e) => {
+    if (pulling && scr.scrollTop === 0 && !isRefreshing) {
+      const endY = e.changedTouches[0].clientY;
+      const distance = endY - startY;
+      
+      if (distance > refreshThreshold) {
+        await performRefresh();
+      }
+      
+      refreshIndicator.style.top = '-50px';
+      pulling = false;
+      startY = 0;
+    }
+  });
+};
+const performRefresh = async () => {
+  if (isRefreshing) return;
+  isRefreshing = true;
+  
+  const refreshIndicator = document.querySelector('.refresh-indicator');
+  if (refreshIndicator) {
+    refreshIndicator.innerHTML = '<div class="refresh-spinner"></div><span>Refreshing...</span>';
+    refreshIndicator.style.top = '0';
+  }
+  
+  try {
+    // Refresh all data
+    await Promise.all([
+      loadFoldersFromCloud(),
+      loadCalendarEvents(),
+      loadRecipes(),
+      loadUserProfiles()
+    ]);
+    
+    // Re-render current view
+    if (currentView === 'home') renderHome();
+    else if (currentView === 'folders') renderFolderView();
+    else if (currentView === 'calendar') renderCalendar();
+    else if (currentView === 'recipes') renderRecipes();
+    else if (currentView === 'contacts') renderContacts();
+    else if (currentView === 'settings') renderSettings();
+    else if (currentView === 'admin') renderAdminPanel();
+    
+    showMessage('Refreshed successfully! ✅', 'success');
+  } catch (error) {
+    console.error('Refresh error:', error);
+    showMessage('Refresh failed. Check connection.', 'error');
+  }
+  
+  // Hide indicator
+  setTimeout(() => {
+    if (refreshIndicator) {
+      refreshIndicator.style.top = '-50px';
+      refreshIndicator.innerHTML = '<div class="refresh-spinner"></div><span>Pull to refresh...</span>';
+    }
+    isRefreshing = false;
+  }, 500);
+};
+// Call this after renderApp or in window.onload
+const initPullToRefresh = () => {
+  setTimeout(addPullToRefresh, 500);
+};
+
+
+// ============ ADMIN MANAGEMENT ============
+const makeUserAdmin = async (username) => {
+  if (currentUser.role !== 'admin') {
+    showMessage('Only admins can promote users.', 'error');
+    return;
+  }
+  
+  if (!confirm(`Make "${username}" an admin? They will have full access to edit/delete everything.`)) return;
+  
+  const success = await updateUser(username, { role: 'admin' });
+  if (success) {
+    showMessage(`✅ ${username} is now an admin!`, 'success');
+    renderAdminPanel(); // Refresh admin panel
+    if (currentView === 'contacts') renderContacts(); // Refresh contacts view
+  } else {
+    showMessage('Error promoting user to admin', 'error');
+  }
+};
+
+const removeAdmin = async (username) => {
+  if (currentUser.role !== 'admin') {
+    showMessage('Only admins can remove admin privileges.', 'error');
+    return;
+  }
+  
+  if (username === currentUser.username) {
+    showMessage('You cannot remove your own admin privileges.', 'error');
+    return;
+  }
+  
+  if (!confirm(`Remove admin privileges from "${username}"?`)) return;
+  
+  const success = await updateUser(username, { role: 'user' });
+  if (success) {
+    showMessage(`✅ ${username} is no longer an admin.`, 'success');
+    renderAdminPanel(); 
+    if (currentView === 'contacts') renderContacts();
+  } else {
+    showMessage('Error removing admin privileges', 'error');
+  }
+};
+
+
+
 // ============ AUTH ============
 const doLogin = async () => {
   const username = document.getElementById('loginUsername')?.value.trim();
@@ -1610,7 +2200,7 @@ const doLogin = async () => {
     currentUser = { ...admin, role: 'admin' };
     if (remember) localStorage.setItem('family_vault_user', username);
     await Promise.all([loadFoldersFromCloud(), loadCalendarEvents(), loadRecipes(), loadUserProfiles()]);
-    startAutoLocationTracking(); // ← start auto-tracking after login
+    startAutoLocationTracking(); // ? start auto-tracking after login
     renderApp(); return;
   }
   const users = await getUsers();
@@ -1619,7 +2209,7 @@ const doLogin = async () => {
     currentUser = user;
     if (remember) localStorage.setItem('family_vault_user', username);
     await Promise.all([loadFoldersFromCloud(), loadCalendarEvents(), loadRecipes(), loadUserProfiles()]);
-    startAutoLocationTracking(); // ← start auto-tracking after login
+    startAutoLocationTracking(); // ? start auto-tracking after login
     renderApp(); return;
   }
   showMessage('Invalid username or password', 'error');
@@ -1690,7 +2280,7 @@ const showSignupBack = () => { document.getElementById('signupForm').style.displ
 window.onload = async () => {
   setTheme(getTheme());
   const fns = {
-    doLogin, doSignup, showLogin, showSignup, showSignupBack, toggleMenu, navigateTo, signOut,
+    doLogin, doSignup, showLogin, showSignup, showSignupBack, toggleMenu, navigateTo, signOut,makeUserAdmin,removeAdmin,
     openForgotModal, closeForgotModal, checkUserForRecovery, openSecurityModal, closeSecurityModal, verifySecurityAnswer,
     createFolderInDrive, showEditLinkModal, saveDriveLink, deleteFolder, closeModal, openCloudFolder, openFolderActions, goBackToFolders,
     changePassword, togglePassword, deleteUserAccount, openWhatsApp, updateProfile, toggleTheme, setTheme, renderSettings,
@@ -1709,8 +2299,9 @@ window.onload = async () => {
       currentUser = { ...admin, role: 'admin' };
       await Promise.all([loadFoldersFromCloud(), loadCalendarEvents(), loadRecipes(), loadUserProfiles()]);
       await checkSupabaseTables();
-      startAutoLocationTracking(); // ← auto-start on remembered login
+      startAutoLocationTracking(); // ? auto-start on remembered login
       renderApp();
+      initPullToRefresh();
       return;
     }
     const users = await getUsers();
@@ -1719,13 +2310,20 @@ window.onload = async () => {
       currentUser = user;
       await Promise.all([loadFoldersFromCloud(), loadCalendarEvents(), loadRecipes(), loadUserProfiles()]);
       await checkSupabaseTables();
-      startAutoLocationTracking(); // ← auto-start on remembered login
+      startAutoLocationTracking(); // ? auto-start on remembered login
       renderApp();
+      initPullToRefresh();
       return;
     }
+    
   }
   showLogin();
 };
+
+
+
+
+
 </script>
 </body>
 </html>
