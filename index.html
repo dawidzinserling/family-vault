@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="turquoise">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -8,16 +8,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 /* ============ THEME VARIABLES ============ */
-:root, [data-theme="dark"] {
-  --bg:#080E18; --bg2:#0D1525; --bg3:#121C30;
-  --s1:#18243A; --s2:#1E2E48; --s3:#243556;
-  --bd:rgba(64,196,196,0.10); --bd2:rgba(64,196,196,0.22);
-  --a1:#3DD9D9; --a2:#28BABA; --a3:#1A9B9B;
-  --tx:#EDF4F7; --tx2:#7ABECE; --tx3:#3E6A7A;
-  --nav-bg:#0D1525; --shadow:0 4px 20px rgba(0,0,0,0.45);
-  --shadow-sm:0 1px 6px rgba(0,0,0,0.25); --btn-text:#040C14;
+:root, [data-theme="turquoise"] {
+  --bg:#061412; --bg2:#0A1E1C; --bg3:#0E2422;
+  --s1:#132E2C; --s2:#183836; --s3:#1E4240;
+  --bd:rgba(0,206,188,0.12); --bd2:rgba(0,206,188,0.26);
+  --a1:#00CEC0; --a2:#00B0A4; --a3:#008F84;
+  --tx:#E8F8F6; --tx2:#6ECFC8; --tx3:#2E7A74;
+  --nav-bg:#0A1E1C; --shadow:0 4px 20px rgba(0,0,0,0.45);
+  --shadow-sm:0 1px 6px rgba(0,0,0,0.25); --btn-text:#030E0D;
   --danger:#FF5F6D; --danger-bg:rgba(255,95,109,0.14);
-  --success:#3DD9A0; --whatsapp:#25D366; --recipe:#FF9F5A; --location:#6EE7B7;
+  --success:#2ED9B0; --whatsapp:#25D366; --recipe:#FF9F5A; --location:#6EE7B7;
 }
 [data-theme="light"] {
   --bg:#F0F4F8; --bg2:#FFFFFF; --bg3:#E4EEF5;
@@ -34,15 +34,15 @@
 [data-theme="redblack"] {
   --bg:#100608; --bg2:#180A0C; --bg3:#1E0E10;
   --s1:#2A1215; --s2:#32161A; --s3:#3C1A1E;
-  --bd:rgba(220,60,80,0.12); --bd2:rgba(220,60,80,0.28);
-  --a1:#E8364A; --a2:#C82A3C; --a3:#A0202E;
-  --tx:#FAE8EA; --tx2:#C88090; --tx3:#6A3840;
+  --bd:rgba(255,30,60,0.14); --bd2:rgba(255,30,60,0.32);
+  --a1:#FF1E3C; --a2:#E0001A; --a3:#B80014;
+  --tx:#FAE8EA; --tx2:#FF8095; --tx3:#6A3840;
   --nav-bg:#180A0C; --shadow:0 4px 20px rgba(0,0,0,0.55);
   --shadow-sm:0 1px 6px rgba(0,0,0,0.35); --btn-text:#FFF0F2;
   --danger:#FF8A70; --danger-bg:rgba(255,138,112,0.14);
   --success:#3DD9A0; --whatsapp:#25D366; --recipe:#FF9F5A; --location:#FF8A8A;
 }
-/* 💙 Blue / Pink */
+/* 💜 Purple */
 [data-theme="bluepink"] {
   --bg:#07091A; --bg2:#0D1030; --bg3:#10163A;
   --s1:#161D44; --s2:#1C2452; --s3:#222C5E;
@@ -53,6 +53,54 @@
   --shadow-sm:0 1px 6px rgba(0,0,0,0.35); --btn-text:#1A0030;
   --danger:#FF5F6D; --danger-bg:rgba(255,95,109,0.14);
   --success:#3DD9A0; --whatsapp:#25D366; --recipe:#FF85C0; --location:#85D4FF;
+}
+/* 🩷 Pink */
+[data-theme="pink"] {
+  --bg:#180A10; --bg2:#220F18; --bg3:#2A1320;
+  --s1:#361828; --s2:#421E32; --s3:#50253E;
+  --bd:rgba(255,80,160,0.14); --bd2:rgba(255,80,160,0.30);
+  --a1:#FF50A0; --a2:#E0357F; --a3:#B82060;
+  --tx:#FDE8F2; --tx2:#FF90C0; --tx3:#7A3054;
+  --nav-bg:#220F18; --shadow:0 4px 20px rgba(0,0,0,0.55);
+  --shadow-sm:0 1px 6px rgba(0,0,0,0.35); --btn-text:#18050E;
+  --danger:#FF8A70; --danger-bg:rgba(255,138,112,0.14);
+  --success:#3DD9A0; --whatsapp:#25D366; --recipe:#FFB347; --location:#FF90D0;
+}
+/* 🩵 Sky Blue */
+[data-theme="skyblue"] {
+  --bg:#050F1A; --bg2:#081828; --bg3:#0C2030;
+  --s1:#102A3E; --s2:#16344C; --s3:#1C3E5A;
+  --bd:rgba(30,170,255,0.13); --bd2:rgba(30,170,255,0.28);
+  --a1:#1EAAFF; --a2:#0088E0; --a3:#006AB8;
+  --tx:#E6F4FF; --tx2:#70C4FF; --tx3:#2A6888;
+  --nav-bg:#081828; --shadow:0 4px 20px rgba(0,0,0,0.50);
+  --shadow-sm:0 1px 6px rgba(0,0,0,0.30); --btn-text:#020C18;
+  --danger:#FF5F6D; --danger-bg:rgba(255,95,109,0.14);
+  --success:#3DD9A0; --whatsapp:#25D366; --recipe:#FF9F5A; --location:#70E8FF;
+}
+/* 🟢 Lime Green */
+[data-theme="limegreen"] {
+  --bg:#071008; --bg2:#0C180D; --bg3:#101E11;
+  --s1:#162614; --s2:#1C2E1A; --s3:#223620;
+  --bd:rgba(100,230,50,0.13); --bd2:rgba(100,230,50,0.28);
+  --a1:#64E632; --a2:#4CC420; --a3:#38A012;
+  --tx:#EDFAE8; --tx2:#90D870; --tx3:#3A6828;
+  --nav-bg:#0C180D; --shadow:0 4px 20px rgba(0,0,0,0.50);
+  --shadow-sm:0 1px 6px rgba(0,0,0,0.30); --btn-text:#051004;
+  --danger:#FF5F6D; --danger-bg:rgba(255,95,109,0.14);
+  --success:#00E676; --whatsapp:#25D366; --recipe:#FFD050; --location:#B0FF70;
+}
+/* 🟠 Dark Orange */
+[data-theme="darkorange"] {
+  --bg:#120800; --bg2:#1C0E00; --bg3:#221200;
+  --s1:#301800; --s2:#3A1E00; --s3:#462400;
+  --bd:rgba(255,110,0,0.14); --bd2:rgba(255,110,0,0.30);
+  --a1:#FF6E00; --a2:#E05600; --a3:#B84000;
+  --tx:#FFF0E0; --tx2:#FFAA60; --tx3:#7A4010;
+  --nav-bg:#1C0E00; --shadow:0 4px 20px rgba(0,0,0,0.55);
+  --shadow-sm:0 1px 6px rgba(0,0,0,0.35); --btn-text:#120500;
+  --danger:#FF5F6D; --danger-bg:rgba(255,95,109,0.14);
+  --success:#3DD9A0; --whatsapp:#25D366; --recipe:#FFD050; --location:#FFB347;
 }
 
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -376,10 +424,14 @@ const stopAutoLocationTracking = () => {
 
 // ============ THEME ============
 const THEMES = [
-  { id:'dark',      label:'Dark',     icon:'🌙', preview:'linear-gradient(135deg,#080E18,#3DD9D9)' },
-  { id:'light',     label:'Light',    icon:'☀️',  preview:'linear-gradient(135deg,#EFF5F9,#0088A0)' },
-  { id:'redblack',  label:'Red',      icon:'🔴', preview:'linear-gradient(135deg,#100608,#E8364A)' },
-  { id:'bluepink',  label:'Purple',   icon:'💜', preview:'linear-gradient(135deg,#07091A,#C86EF0)' },
+  { id:'turquoise',  label:'Turquoise', icon:'🩵', preview:'linear-gradient(135deg,#061412,#00CEC0)' },
+  { id:'light',      label:'Light',     icon:'☀️',  preview:'linear-gradient(135deg,#EFF5F9,#0088A0)' },
+  { id:'redblack',   label:'Red',       icon:'🔴', preview:'linear-gradient(135deg,#100608,#FF1E3C)' },
+  { id:'bluepink',   label:'Purple',    icon:'💜', preview:'linear-gradient(135deg,#07091A,#C86EF0)' },
+  { id:'pink',       label:'Pink',      icon:'🩷', preview:'linear-gradient(135deg,#180A10,#FF50A0)' },
+  { id:'skyblue',    label:'Sky Blue',  icon:'💙', preview:'linear-gradient(135deg,#050F1A,#1EAAFF)' },
+  { id:'limegreen',  label:'Lime',      icon:'🟢', preview:'linear-gradient(135deg,#071008,#64E632)' },
+  { id:'darkorange', label:'Orange',    icon:'🟠', preview:'linear-gradient(135deg,#120800,#FF6E00)' },
 ];
 const getTheme = () => localStorage.getItem('fv_theme') || 'dark';
 const setTheme = (t) => {
