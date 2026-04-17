@@ -606,6 +606,86 @@ input:focus, textarea:focus {
   font-size: 20px;
 }
 
+/* Folder card with user color */
+  .folder-card {
+    border-top: 3px solid var(--folder-color, var(--a1));
+  }
+  
+  .folder-card .folder-icon {
+    color: var(--folder-color, var(--a1));
+  }
+  
+  .folder-list-item {
+    border-left: 3px solid var(--folder-color, var(--a1));
+  }
+  
+  .folder-list-icon {
+    color: var(--folder-color, var(--a1));
+  }
+  
+  /* Color picker styles (add these too) */
+  .color-option {
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .color-option:hover:not(.taken) {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  
+  .color-option.taken {
+    cursor: not-allowed;
+    filter: grayscale(0.3);
+  }
+  
+  .color-option.taken::after {
+    content: "🔒";
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 8px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 50%;
+    padding: 2px;
+  }
+  
+  .color-option.active {
+    transform: scale(1.02);
+  }
+  
+  #customColorPicker {
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  #customColorPicker:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  }
+  
+  .folder-color-grid {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 4px;
+    scrollbar-width: thin;
+  }
+  
+  .folder-color-grid::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .folder-color-grid::-webkit-scrollbar-track {
+    background: var(--bg3);
+    border-radius: 4px;
+  }
+  
+  .folder-color-grid::-webkit-scrollbar-thumb {
+    background: var(--a1);
+    border-radius: 4px;
+  }
+
 </style>
 
 </head>
@@ -635,6 +715,91 @@ const EVENT_TYPES = {
   reminder:    { label:'Reminder',    icon:'📌', dotClass:'dot-reminder',    badgeClass:'badge-reminder',    iconClass:'ei-reminder'    },
 };
 
+// ============ FOLDER COLORS ============
+const AVAILABLE_COLORS = [
+  { name: 'Red', value: '#E53935', emoji: '🔴', takenBy: null },
+  { name: 'Dark Red', value: '#C62828', emoji: '🔴', takenBy: null },
+  { name: 'Pink', value: '#EC407A', emoji: '🩷', takenBy: null },
+  { name: 'Purple', value: '#8E24AA', emoji: '🟣', takenBy: null },
+  { name: 'Deep Purple', value: '#5E35B1', emoji: '🟣', takenBy: null },
+  { name: 'Indigo', value: '#3949AB', emoji: '🔵', takenBy: null },
+  { name: 'Blue', value: '#1E88E5', emoji: '🔵', takenBy: null },
+  { name: 'Light Blue', value: '#039BE5', emoji: '🔵', takenBy: null },
+  { name: 'Cyan', value: '#00ACC1', emoji: '🔵', takenBy: null },
+  { name: 'Teal', value: '#00897B', emoji: '🟢', takenBy: null },
+  { name: 'Green', value: '#43A047', emoji: '🟢', takenBy: null },
+  { name: 'Light Green', value: '#7CB342', emoji: '🟢', takenBy: null },
+  { name: 'Lime', value: '#C0CA33', emoji: '🟢', takenBy: null },
+  { name: 'Yellow', value: '#FDD835', emoji: '🟡', takenBy: null },
+  { name: 'Amber', value: '#FFB300', emoji: '🟡', takenBy: null },
+  { name: 'Orange', value: '#FB8C00', emoji: '🟠', takenBy: null },
+  { name: 'Deep Orange', value: '#F4511E', emoji: '🟠', takenBy: null },
+  { name: 'Brown', value: '#8D6E63', emoji: '🟤', takenBy: null },
+  { name: 'Grey', value: '#757575', emoji: '⚪', takenBy: null },
+  { name: 'Dark Grey', value: '#424242', emoji: '⚫', takenBy: null },
+  { name: 'Blue Grey', value: '#546E7A', emoji: '🔵', takenBy: null },
+  { name: 'Lavender', value: '#9C27B0', emoji: '🟣', takenBy: null },
+  { name: 'Rose', value: '#F06292', emoji: '🩷', takenBy: null },
+  { name: 'Coral', value: '#FF7043', emoji: '🟠', takenBy: null },
+  { name: 'Peach', value: '#FFAB91', emoji: '🟠', takenBy: null },
+  { name: 'Mint', value: '#4DB6AC', emoji: '🟢', takenBy: null },
+  { name: 'Olive', value: '#9E9D24', emoji: '🟢', takenBy: null },
+  { name: 'Gold', value: '#FFD700', emoji: '🟡', takenBy: null },
+  { name: 'Silver', value: '#B0BEC5', emoji: '⚪', takenBy: null },
+  { name: 'Copper', value: '#D84315', emoji: '🟠', takenBy: null },
+  { name: 'Turquoise', value: '#00BCD4', emoji: '🔵', takenBy: null },
+  { name: 'Magenta', value: '#E91E63', emoji: '🩷', takenBy: null },
+  { name: 'Navy', value: '#283593', emoji: '🔵', takenBy: null },
+  { name: 'Forest', value: '#2E7D32', emoji: '🟢', takenBy: null },
+  { name: 'Wine', value: '#880E4F', emoji: '🔴', takenBy: null },
+  { name: 'Mustard', value: '#F9A825', emoji: '🟡', takenBy: null },
+  { name: 'Salmon', value: '#EF9A9A', emoji: '🩷', takenBy: null },
+];
+
+// Load taken colors from user profiles
+const loadTakenColors = async () => {
+  try {
+    const r = await sbFetch('user_profiles?select=username,folder_color', 'GET');
+    if (r.ok) {
+      const data = await r.json();
+      // Reset takenBy for all colors
+      AVAILABLE_COLORS.forEach(color => { color.takenBy = null; });
+      // Mark taken colors
+      data.forEach(profile => {
+        if (profile.folder_color && profile.username !== currentUser?.username) {
+          const color = AVAILABLE_COLORS.find(c => c.value === profile.folder_color);
+          if (color) color.takenBy = profile.username;
+        }
+      });
+    }
+  } catch(e) { console.error('Error loading taken colors:', e); }
+};
+
+// Get user's folder color
+const getUserFolderColor = () => {
+  const profile = userProfiles[currentUser?.username];
+  return profile?.folder_color || '#1E90FF';
+};
+
+// Update user's folder color
+const updateUserFolderColor = async (colorValue) => {
+  // Check if color is taken by another user
+  const colorTaken = AVAILABLE_COLORS.find(c => c.value === colorValue && c.takenBy && c.takenBy !== currentUser.username);
+  if (colorTaken) {
+    showMessage(`❌ ${colorTaken.name} is already used by ${colorTaken.takenBy}. Please choose another color.`, 'error');
+    return false;
+  }
+  
+  const success = await upsertUserProfile(currentUser.username, { folder_color: colorValue });
+  if (success) {
+    showMessage(`✅ Folder color updated to ${AVAILABLE_COLORS.find(c => c.value === colorValue)?.name}!`, 'success');
+    await loadTakenColors(); // Refresh taken colors
+    renderSettings(); // Refresh settings page
+    renderFolderView(); // Refresh folders with new color
+    return true;
+  }
+  return false;
+};
 // ============ STATE ============
 let currentUser = null, currentView = 'home', currentFolder = null, menuOpen = false;
 let forgotPhoneNumber = null, folders = [], calendarEvents = [], recipes = [];
@@ -686,10 +851,10 @@ const THEMES = [
   { id: 'dark',       label: 'Dark',      icon: '🌙',  preview: 'linear-gradient(135deg,#0F1117,#4A9EFF)' },
   { id: 'redblack',   label: 'Red',       icon: '🔴', preview: 'linear-gradient(135deg,#FEF5F5,#DC3545)' },
   { id: 'bluepink',   label: 'Purple',    icon: '💜', preview: 'linear-gradient(135deg,#F8F5FE,#8B5CF6)' },
-  { id: 'pink',       label: 'Pink',      icon: '🩷', preview: 'linear-gradient(135deg,#FEF5F8,#EC4899)' },
-  { id: 'skyblue',    label: 'Sky Blue',  icon: '🩵', preview: 'linear-gradient(135deg,#F0F9FF,#0EA5E9)' },
-  { id: 'limegreen',  label: 'Lime',      icon: '🟢', preview: 'linear-gradient(135deg,#F5FEF0,#22C55E)' },
-  { id: 'darkorange', label: 'Orange',    icon: '🟠', preview: 'linear-gradient(135deg,#FFF8F0,#F97316)' },
+  { id: 'pink',       label: 'Pink',      icon: '🌸', preview: 'linear-gradient(135deg,#FEF5F8,#EC4899)' },
+  { id: 'skyblue',    label: 'Sky Blue',  icon: '☁️', preview: 'linear-gradient(135deg,#F0F9FF,#0EA5E9)' },
+  { id: 'limegreen',  label: 'Lime',      icon: '🍋', preview: 'linear-gradient(135deg,#F5FEF0,#22C55E)' },
+  { id: 'darkorange', label: 'Orange',    icon: '🍊', preview: 'linear-gradient(135deg,#FFF8F0,#F97316)' },
 ];
 const getTheme = () => localStorage.getItem('fv_theme') || 'light';
 const setTheme = (t) => {
@@ -862,12 +1027,33 @@ const loadFoldersFromCloud = async () => {
     const r = await sbFetch('folders?select=*&order=created_at.desc', 'GET');
     if (r.ok) {
       const data = await r.json();
-      folders = data.map(f => ({ id: f.id, name: f.name, driveLink: f.drive_link, createdBy: f.created_by, createdByPhone: f.created_by_phone, createdAt: f.created_at }));
+      folders = data.map(f => ({ 
+        id: f.id, 
+        name: f.name, 
+        driveLink: f.drive_link, 
+        createdBy: f.created_by, 
+        createdByPhone: f.created_by_phone, 
+        createdAt: f.created_at,
+        creatorColor: f.creator_color || '#1E90FF'  // ← Add this with fallback
+      }));
     }
   } catch(e) { console.error(e); }
   return folders;
 };
-const saveFolderToCloud = async (folder) => { try { const r = await sbFetch('folders', 'POST', { id: folder.id, name: folder.name, drive_link: folder.driveLink, created_by: folder.createdBy, created_by_phone: folder.createdByPhone, created_at: folder.createdAt }); return r.ok; } catch(e) { return false; } };
+const saveFolderToCloud = async (folder) => { 
+   try { 
+    const r = await sbFetch('folders', 'POST', { 
+      id: folder.id, 
+      name: folder.name, 
+      drive_link: folder.driveLink, 
+      created_by: folder.createdBy, 
+      created_by_phone: folder.createdByPhone, 
+      created_at: folder.createdAt,
+      creator_color: folder.creatorColor
+    }); 
+    return r.ok; 
+  } catch(e) { return false; } 
+};
 const updateFolderInCloud = async (folder) => { try { const r = await sbFetch(`folders?id=eq.${folder.id}`, 'PATCH', { drive_link: folder.driveLink }); return r.ok; } catch(e) { return false; } };
 const deleteFolderFromCloud = async (folderId) => { try { const r = await sbFetch(`folders?id=eq.${folderId}`, 'DELETE'); return r.ok; } catch(e) { return false; } };
 
@@ -951,10 +1137,25 @@ const getFolders = () => folders;
 const canDeleteFolder = (folder) => currentUser.role === 'admin' || folder.createdBy === currentUser.username;
 const createFolder = async (folderName, driveLink) => {
   if (folders.find(f => f.name === folderName)) { showMessage('Folder already exists!', 'error'); return false; }
-  const newFolder = { id: Date.now(), name: folderName, driveLink: driveLink || '', createdBy: currentUser.username, createdByPhone: currentUser.phone, createdAt: new Date().toISOString() };
+  const creatorColor = getUserFolderColor(); // Get current user's color
+  const newFolder = { 
+    id: Date.now(), 
+    name: folderName, 
+    driveLink: driveLink || '', 
+    createdBy: currentUser.username, 
+    createdByPhone: currentUser.phone, 
+    createdAt: new Date().toISOString(),
+    creatorColor: creatorColor  // ← Save the creator's color
+  };
   const saved = await saveFolderToCloud(newFolder);
-  if (saved) { folders.push(newFolder); showMessage(`Folder "${folderName}" created!`, 'success'); notifyNewFolder(folderName, currentUser.username); return true; }
-  showMessage('Error saving folder', 'error'); return false;
+  if (saved) { 
+    folders.push(newFolder); 
+    showMessage(`Folder "${folderName}" created!`, 'success'); 
+    notifyNewFolder(folderName, currentUser.username); 
+    return true; 
+  }
+  showMessage('Error saving folder', 'error'); 
+  return false;
 };
 const updateFolderLink = async (folderId, driveLink) => {
   const folder = folders.find(f => f.id === folderId);
@@ -1219,7 +1420,7 @@ const openEditRecipeModal = (id) => {
       </div>
       <input type="file" id="recipeImageInput" accept="image/*" style="display:none" onchange="handleRecipeImageSelect(this)">
       <input type="file" id="recipeCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleRecipeImageSelect(this)">
-      <div id="recipeImgPreview">${pendingRecipeImageData ? `<div class="img-preview-wrap"><img src="${pendingRecipeImageData}"><button class="remove-img" onclick="clearRecipeImage()">?</button></div>` : ''}</div>
+      <div id="recipeImgPreview">${pendingRecipeImageData ? `<div class="img-preview-wrap"><img src="${pendingRecipeImageData}"><button class="remove-img" onclick="clearRecipeImage()">✕</button></div>` : ''}</div>
       <div id="recipeModalMsg"></div>
       <div class="modal-buttons">
         <button class="btn btn-recipe" onclick="doSaveRecipe()">Save Changes</button>
@@ -1239,7 +1440,7 @@ const handleRecipeImageSelect = async (input) => {
     const preview = document.getElementById('recipeImgPreview');
     if (preview) preview.innerHTML = `<div class="al al-i" style="text-align:center">? Compressing image…</div>`;
     pendingRecipeImageData = await compressImage(file, 1200, 0.78);
-    if (preview) preview.innerHTML = `<div class="img-preview-wrap"><img src="${pendingRecipeImageData}"><button class="remove-img" onclick="clearRecipeImage()">?</button></div>`;
+    if (preview) preview.innerHTML = `<div class="img-preview-wrap"><img src="${pendingRecipeImageData}"><button class="remove-img" onclick="clearRecipeImage()">✕</button></div>`;
   } catch(err) {
     showMessage('Could not process image. Please try another.', 'error');
     console.error('Recipe image compress error:', err);
@@ -1361,7 +1562,7 @@ const openProfilePicModal = () => {
       <div class="modal-title">🖼️ Profile Picture</div>
       <div class="modal-sub">Choose how to add your profile photo</div>
       <div id="avatarPreviewWrap" style="${existing ? '' : 'display:none'}">
-        ${existing ? `<div class="img-preview-wrap"><img src="${existing}"><button class="remove-img" onclick="clearAvatarPreview()">?</button></div>` : ''}
+        ${existing ? `<div class="img-preview-wrap"><img src="${existing}"><button class="remove-img" onclick="clearAvatarPreview()">✕</button></div>` : ''}
       </div>
       <div class="img-upload-options">
         <div class="img-upload-option" onclick="triggerAvatarCamera()"><span class="upload-icon">📸</span>Take Selfie</div>
@@ -1391,7 +1592,7 @@ const handleAvatarSelect = async (input) => {
     const wrap = document.getElementById('avatarPreviewWrap');
     if (wrap) { wrap.style.display = 'block'; wrap.innerHTML = `<div class="al al-i" style="text-align:center">? Compressing image…</div>`; }
     pendingAvatarData = await compressImage(file, 600, 0.82);
-    if (wrap) { wrap.style.display = 'block'; wrap.innerHTML = `<div class="img-preview-wrap"><img src="${pendingAvatarData}"><button class="remove-img" onclick="clearAvatarPreview()">?</button></div>`; }
+    if (wrap) { wrap.style.display = 'block'; wrap.innerHTML = `<div class="img-preview-wrap"><img src="${pendingAvatarData}"><button class="remove-img" onclick="clearAvatarPreview()">✕</button></div>`; }
   } catch(err) {
     showMessage('Could not process image. Please try another.', 'error');
     console.error('Avatar compress error:', err);
@@ -1407,13 +1608,13 @@ const doSaveAvatar = async () => {
 const closeAvatarModal = () => { document.getElementById('avatarModalOverlay')?.remove(); pendingAvatarData = null; };
 
 // ============ RENDER: MAIN APP ============
-const renderApp = () => {
+const renderApp = async () => {
   const isAdmin = currentUser?.role === 'admin';
   const theme = getTheme();
   document.documentElement.setAttribute('data-theme', theme);
   const myProfile = userProfiles[currentUser.username];
   const myAvatarUrl = myProfile?.avatar_url;
-
+await loadTakenColors();
   document.getElementById('app').innerHTML = `
     <div class="tbw">
       <div class="tb">
@@ -1542,6 +1743,7 @@ const renderHome = () => {
 const renderFolderView = () => {
   const container = document.getElementById('foldersContainer'); if (!container) return;
   const visibleFolders = getFolders();
+  const userColor = getUserFolderColor();
 
   if (!currentFolder) {
     container.innerHTML = `
@@ -1565,33 +1767,39 @@ const renderFolderView = () => {
       ` : folderViewMode === 'grid' ? `
         <div class="folder-grid">
           ${visibleFolders.map(folder => `
-            <div class="folder-card" onclick="openFolderActions(${folder.id})">
-              <div class="folder-icon">📁</div>
-              <div class="folder-name">${escapeHtml(folder.name)}</div>
-              <div style="font-size:9px;color:var(--tx3);margin-top:3px">${escapeHtml(folder.createdBy)} · ${new Date(folder.createdAt).toLocaleDateString()}</div>
-              ${folder.driveLink ? '<div style="font-size:9px;color:var(--a1);margin-top:4px;font-weight:700">☁️ Connected</div>' : '<div style="font-size:9px;color:var(--tx3);margin-top:4px">⚠️ No link</div>'}}
-              <div class="folder-actions" onclick="event.stopPropagation()">
-                <button class="btn btn-sm btn-gh" onclick="showEditLinkModal(${folder.id},'${escapeHtml(folder.name)}')">🔗 Link</button>
-                ${canDeleteFolder(folder) ? `<button class="btn btn-sm btn-d" onclick="deleteFolder(${folder.id})">🗑️</button>` : ''}
-              </div>
-            </div>
+           <div class="folder-card" onclick="openFolderActions(${folder.id})" style="border-top: 3px solid ${folder.creatorColor || '#1E90FF'}">
+  <div class="folder-icon" style="color:${folder.creatorColor || '#1E90FF'}">📁</div>
+  <div class="folder-name">${escapeHtml(folder.name)}</div>
+  <div style="font-size:9px;color:var(--tx3);margin-top:3px">
+    <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${folder.creatorColor || '#1E90FF'};margin-right:4px"></span>
+    ${escapeHtml(folder.createdBy)} · ${new Date(folder.createdAt).toLocaleDateString()}
+  </div>
+  ${folder.driveLink ? '<div style="font-size:9px;color:var(--a1);margin-top:4px;font-weight:700">☁️ Connected</div>' : '<div style="font-size:9px;color:var(--tx3);margin-top:4px">⚠️ No link</div>'}
+  <div class="folder-actions" onclick="event.stopPropagation()">
+    <button class="btn btn-sm btn-gh" onclick="showEditLinkModal(${folder.id},'${escapeHtml(folder.name)}')">🔗 Link</button>
+    ${canDeleteFolder(folder) ? `<button class="btn btn-sm btn-d" onclick="deleteFolder(${folder.id})">🗑️</button>` : ''}
+  </div>
+</div>
           `).join('')}
         </div>
       ` : `
         <div class="folder-list">
           ${visibleFolders.map(folder => `
-            <div class="folder-list-item" onclick="openFolderActions(${folder.id})">
-              <div class="folder-list-icon">📁</div>
-              <div class="folder-list-info">
-                <div class="folder-list-name">${escapeHtml(folder.name)}</div>
-                <div class="folder-list-meta">${escapeHtml(folder.createdBy)} · ${new Date(folder.createdAt).toLocaleDateString()}</div>
-              </div>
-              <div class="folder-list-status ${folder.driveLink ? 'connected' : 'missing'}">${folder.driveLink ? '☁️ Connected' : '⚠️ No link'}</div>
-              <div class="folder-list-actions" onclick="event.stopPropagation()">
-                <button class="btn btn-sm btn-gh" onclick="showEditLinkModal(${folder.id},'${escapeHtml(folder.name)}')">🔗</button>
-                ${canDeleteFolder(folder) ? `<button class="btn btn-sm btn-d" onclick="deleteFolder(${folder.id})">🗑️</button>` : ''}
-              </div>
-            </div>
+            <div class="folder-list-item" onclick="openFolderActions(${folder.id})" style="border-left: 3px solid ${folder.creatorColor || '#1E90FF'}">
+  <div class="folder-list-icon" style="color:${folder.creatorColor || '#1E90FF'}">📁</div>
+  <div class="folder-list-info">
+    <div class="folder-list-name">${escapeHtml(folder.name)}</div>
+    <div class="folder-list-meta">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${folder.creatorColor || '#1E90FF'};margin-right:4px"></span>
+      ${escapeHtml(folder.createdBy)} · ${new Date(folder.createdAt).toLocaleDateString()}
+    </div>
+  </div>
+  <div class="folder-list-status ${folder.driveLink ? 'connected' : 'missing'}">${folder.driveLink ? '☁️ Connected' : '⚠️ No link'}</div>
+  <div class="folder-list-actions" onclick="event.stopPropagation()">
+    <button class="btn btn-sm btn-gh" onclick="showEditLinkModal(${folder.id},'${escapeHtml(folder.name)}')">🔗</button>
+    ${canDeleteFolder(folder) ? `<button class="btn btn-sm btn-d" onclick="deleteFolder(${folder.id})">🗑️</button>` : ''}
+  </div>
+</div>
           `).join('')}
         </div>
       `}`;
@@ -1837,14 +2045,29 @@ const renderContacts = async () => {
         </div>`;
     }).join('')}`;
 };
-
+const applyCustomColor = async () => {
+  const colorPicker = document.getElementById('customColorPicker');
+  if (!colorPicker) return;
+  const customColor = colorPicker.value;
+  const success = await upsertUserProfile(currentUser.username, { folder_color: customColor });
+  if (success) {
+    showMessage(`✅ Custom color applied!`, 'success');
+    await loadTakenColors();
+    renderSettings();
+    renderFolderView();
+  } else {
+    showMessage('Error applying custom color', 'error');
+  }
+};
 // ============ RENDER: SETTINGS ============
 const renderSettings = () => {
   const container = document.getElementById('settingsContainer'); if (!container) return;
   const theme = getTheme();
   const myProfile = userProfiles[currentUser.username];
   const myAvatarUrl = myProfile?.avatar_url;
-  const notificationsEnabled = false; // notifications removed
+  const currentColor = getUserFolderColor();
+  const currentColorInfo = AVAILABLE_COLORS.find(c => c.value === currentColor);
+  
   container.innerHTML = `
     <div class="sh"><div class="sh-t">⚙️ Settings</div></div>
     <div class="card" style="text-align:center;padding:16px 12px">
@@ -1856,6 +2079,34 @@ const renderSettings = () => {
       <div style="font-size:11px;color:var(--tx3);margin-bottom:10px">${escapeHtml(currentUser.phone)}</div>
       <button class="btn btn-gh btn-sm" onclick="openProfilePicModal()">Change Photo</button>
     </div>
+    
+    <!-- Folder Color Selection -->
+    <div class="card">
+      <div class="ctitle">🎨 My Folder Color</div>
+      <div style="margin-bottom:8px;font-size:11px;color:var(--tx2);text-align:center">
+        Current: <span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:${currentColor};vertical-align:middle;margin:0 4px"></span>
+        ${currentColorInfo?.name || 'Default'} ${currentColorInfo?.emoji || '💙'}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px">
+        ${AVAILABLE_COLORS.map(color => {
+          const isTaken = color.takenBy && color.takenBy !== currentUser.username;
+          const isActive = currentColor === color.value;
+          return `
+            <div class="color-option ${isActive ? 'active' : ''} ${isTaken ? 'taken' : ''}" 
+                 onclick="${!isTaken ? `updateUserFolderColor('${color.value}')` : ''}"
+                 style="background:${color.value};border-radius:12px;padding:8px 4px;text-align:center;cursor:${isTaken ? 'not-allowed' : 'pointer'};opacity:${isTaken ? 0.5 : 1};border:2px solid ${isActive ? '#fff' : 'transparent'};box-shadow:${isActive ? '0 0 0 2px var(--a1)' : 'none'}">
+              <div style="font-size:20px;margin-bottom:4px">${color.emoji}</div>
+              <div style="font-size:9px;color:white;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,0.3)">${color.name}</div>
+              ${isTaken ? `<div style="font-size:7px;color:rgba(255,255,255,0.7);margin-top:2px">Used by ${color.takenBy}</div>` : ''}
+            </div>
+          `;
+        }).join('')}
+      </div>
+      <div style="font-size:9px;color:var(--tx3);text-align:center;margin-top:4px">
+        💡 Each family member gets a unique folder color. Colors shown as "taken" are already used by someone else.
+      </div>
+    </div>
+    
     <div class="card">
       <div class="ctitle">🎨 Appearance</div>
       <div class="theme-grid">
@@ -1880,7 +2131,6 @@ const renderSettings = () => {
       <button class="btn btn-p btn-w" onclick="changePassword()">Update Password</button>
     </div>`;
 };
-
 // ============ RENDER: ADMIN ============
 const renderAdminPanel = async () => {
   const container = document.getElementById('adminContainer'); if (!container) return;
@@ -2280,7 +2530,7 @@ const showSignupBack = () => { document.getElementById('signupForm').style.displ
 window.onload = async () => {
   setTheme(getTheme());
   const fns = {
-    doLogin, doSignup, showLogin, showSignup, showSignupBack, toggleMenu, navigateTo, signOut,makeUserAdmin,removeAdmin,
+    doLogin, doSignup, showLogin, showSignup, showSignupBack, toggleMenu, navigateTo, signOut,makeUserAdmin,removeAdmin,applyCustomColor,
     openForgotModal, closeForgotModal, checkUserForRecovery, openSecurityModal, closeSecurityModal, verifySecurityAnswer,
     createFolderInDrive, showEditLinkModal, saveDriveLink, deleteFolder, closeModal, openCloudFolder, openFolderActions, goBackToFolders,
     changePassword, togglePassword, deleteUserAccount, openWhatsApp, updateProfile, toggleTheme, setTheme, renderSettings,
