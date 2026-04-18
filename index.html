@@ -2991,32 +2991,104 @@ const openForgotModal = () => {
   document.body.appendChild(overlay);
   setTimeout(() => document.getElementById('forgotPhone')?.focus(), 100);
 };
-const closeForgotModal = () => { document.getElementById('forgotModalOverlay')?.remove(); forgotPhoneNumber = null; };
+const closeForgotModal = () => {
+  document.getElementById('forgotModalOverlay')?.remove();
+  // Don't clear forgotPhoneNumber here either - it's needed for security verification
+};
 const checkUserForRecovery = async () => {
-  const phone = document.getElementById('forgotPhone')?.value.trim(); const msgEl = document.getElementById('forgotInlineMsg');
-  if (!phone) { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter your phone number.</div>`; return; }
+  const phone = document.getElementById('forgotPhone')?.value.trim();
+  const msgEl = document.getElementById('forgotInlineMsg');
+  
+  if (!phone) {
+    if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter your phone number.</div>`;
+    return;
+  }
+  
   if (msgEl) msgEl.innerHTML = `<div class="al al-i">Checking...</div>`;
-  const users = await getUsers(); const user = users.find(u => u.phone === phone);
-  if (!user) { if (msgEl) msgEl.innerHTML = `<div class="al al-e">No account found with this number.</div>`; return; }
-  forgotPhoneNumber = phone; closeForgotModal(); openSecurityModal(user.security_question);
+  
+  const users = await getUsers();
+  const user = users.find(u => u.phone === phone);
+  
+  if (!user) {
+    if (msgEl) msgEl.innerHTML = `<div class="al al-e">No account found with this number.</div>`;
+    return;
+  }
+  
+  // Store the phone number for later use
+  forgotPhoneNumber = phone;
+  
+  // Close the forgot modal and open security modal
+  closeForgotModal();
+  openSecurityModal(user.security_question);
 };
 const openSecurityModal = (question) => {
   document.getElementById('securityModalOverlay')?.remove();
-  const overlay = document.createElement('div'); overlay.id = 'securityModalOverlay'; overlay.className = 'modal-overlay';
-  overlay.innerHTML = `<div class="modal-content"><div class="modal-title">🛡️ Security Question</div><div class="modal-sub">Answer to recover your account.</div><div style="background:var(--bg3);border:1px solid var(--bd2);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--a1);font-weight:700;margin-bottom:12px;line-height:1.5">${escapeHtml(question || 'Security question not set.')}</div><input type="text" id="securityAnswer" placeholder="Your answer" autocomplete="off"><div id="securityInlineMsg"></div><div class="modal-buttons"><button class="btn btn-p" onclick="verifySecurityAnswer()">Verify ›</button><button class="btn btn-gh" onclick="closeSecurityModal()">Cancel</button></div></div>`;
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSecurityModal(); });
+  const overlay = document.createElement('div');
+  overlay.id = 'securityModalOverlay';
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-title">🛡️ Security Question</div>
+      <div class="modal-sub">Answer to recover your account.</div>
+      <div style="background:var(--bg3);border:1px solid var(--bd2);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--a1);font-weight:700;margin-bottom:12px;line-height:1.5">
+        ${escapeHtml(question || 'Security question not set.')}
+      </div>
+      <input type="text" id="securityAnswer" placeholder="Your answer" autocomplete="off">
+      <div id="securityInlineMsg"></div>
+      <div class="modal-buttons">
+        <button class="btn btn-p" onclick="verifySecurityAnswer()">Verify ›</button>
+        <button class="btn btn-gh" onclick="closeSecurityModal()">Cancel</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeSecurityModal();
+  });
   document.body.appendChild(overlay);
   setTimeout(() => document.getElementById('securityAnswer')?.focus(), 100);
 };
-const closeSecurityModal = () => { document.getElementById('securityModalOverlay')?.remove(); forgotPhoneNumber = null; };
+const closeSecurityModal = () => {
+  document.getElementById('securityModalOverlay')?.remove();
+  // Don't clear forgotPhoneNumber here - let it be cleared by closeForgotModal or on success
+};
 const verifySecurityAnswer = async () => {
-  const answer = document.getElementById('securityAnswer')?.value.trim().toLowerCase(); const msgEl = document.getElementById('securityInlineMsg');
-  if (!answer) { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter your answer.</div>`; return; }
+  const answer = document.getElementById('securityAnswer')?.value.trim().toLowerCase();
+  const msgEl = document.getElementById('securityInlineMsg');
+  
+  if (!answer) {
+    if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter your answer.</div>`;
+    return;
+  }
+  
   if (msgEl) msgEl.innerHTML = `<div class="al al-i">Verifying...</div>`;
-  const users = await getUsers(); const user = users.find(u => u.phone === forgotPhoneNumber);
-  if (!user) { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Something went wrong.</div>`; return; }
-  if (user.security_answer === answer) { closeSecurityModal(); setTimeout(() => { alert(`✅ Identity Verified!\n\nUsername: ${user.username}\nPassword: ${user.password}\n\nPlease save this securely.`); }, 200); }
-  else { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Incorrect answer. Please try again.</div>`; const a = document.getElementById('securityAnswer'); if (a) { a.value = ''; a.focus(); } }
+  
+  // Use forgotPhoneNumber from the outer scope
+  if (!forgotPhoneNumber) {
+    if (msgEl) msgEl.innerHTML = `<div class="al al-e">Session expired. Please start over.</div>`;
+    setTimeout(() => closeSecurityModal(), 1500);
+    return;
+  }
+  
+  const users = await getUsers();
+  const user = users.find(u => u.phone === forgotPhoneNumber);
+  
+  if (!user) {
+    if (msgEl) msgEl.innerHTML = `<div class="al al-e">User not found. Please try again.</div>`;
+    return;
+  }
+  
+  if (user.security_answer === answer) {
+    closeSecurityModal();
+    setTimeout(() => {
+      alert(`✅ Identity Verified!\n\nUsername: ${user.username}\nPassword: ${user.password}\n\nPlease save this securely.`);
+    }, 200);
+  } else {
+    if (msgEl) msgEl.innerHTML = `<div class="al al-e">Incorrect answer. Please try again.</div>`;
+    const a = document.getElementById('securityAnswer');
+    if (a) {
+      a.value = '';
+      a.focus();
+    }
+  }
 };
 
 
