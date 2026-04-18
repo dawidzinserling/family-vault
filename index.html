@@ -86,6 +86,14 @@ button, .nav-tab, .menu-item, .folder-card {
   font-size: 9px !important;
 }
 
+.icon-btn.refreshing {
+  animation: spin 0.6s ease-in-out;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 @media screen and (max-width: 450px) {
   .folder-grid {
     grid-template-columns: 1fr;
@@ -949,9 +957,15 @@ const loadTakenColors = async () => {
       data.forEach(profile => {
         if (profile.folder_color && profile.username !== currentUser?.username) {
           const color = AVAILABLE_COLORS.find(c => c.value === profile.folder_color);
-          if (color) color.takenBy = profile.username;
+          if (color) {
+            color.takenBy = profile.username;
+          }
         }
       });
+      
+      window.allUsedColors = data
+        .filter(p => p.folder_color && p.username !== currentUser?.username)
+        .map(p => ({ color: p.folder_color, user: p.username }));
     }
   } catch(e) { console.error('Error loading taken colors:', e); }
 };
@@ -975,20 +989,40 @@ const updateExistingFoldersColor = async (newColor) => {
     renderFolderView();
   } catch(e) { console.error('Error updating existing folders:', e); }
 };
+
 const updateUserFolderColor = async (colorValue) => {
   const colorTaken = AVAILABLE_COLORS.find(c => c.value === colorValue && c.takenBy && c.takenBy !== currentUser.username);
   if (colorTaken) {
     showMessage(`❌ ${colorTaken.name} is already used by ${colorTaken.takenBy}. Please choose another color.`, 'error');
     return false;
   }
+
+  const allProfiles = userProfiles;
+  let colorInUse = false;
+  let colorUser = null;
+  
+  for (const [username, profile] of Object.entries(allProfiles)) {
+    if (username !== currentUser.username && profile.folder_color === colorValue) {
+      colorInUse = true;
+      colorUser = username;
+      break;
+    }
+  }
+  
+  if (colorInUse) {
+    showMessage(`❌ This color is already used by ${colorUser}. Please choose another color.`, 'error');
+    return false;
+  }
   
   const success = await upsertUserProfile(currentUser.username, { folder_color: colorValue });
   if (success) {
-    showMessage(`✅ Folder color updated to ${AVAILABLE_COLORS.find(c => c.value === colorValue)?.name}!`, 'success');
+    // Update the taken colors list
+    await loadTakenColors();
+    
+    showMessage(`✅ Folder color updated to ${AVAILABLE_COLORS.find(c => c.value === colorValue)?.name || 'Custom color'}!`, 'success');
     
     await updateExistingFoldersColor(colorValue);
     
-    await loadTakenColors();
     renderSettings();
     renderFolderView();
     return true;
@@ -1853,20 +1887,21 @@ const renderApp = async () => {
   const myProfile = userProfiles[currentUser.username];
   const myAvatarUrl = myProfile?.avatar_url;
 await loadTakenColors();
-  document.getElementById('app').innerHTML = `
-    <div class="tbw">
-      <div class="tb">
-         <div class="logo"><div class="logo-icon">☁️</div>Family Vault</div>
-        <div class="tb-r">
-          <button id="themeToggleBtn" class="icon-btn" onclick="toggleTheme()" title="Toggle theme">${(THEMES.find(x=>x.id===theme)||THEMES[0]).icon}</button>
-          <div class="av" onclick="openProfilePicModal()" title="Change profile picture">
-            ${myAvatarUrl ? `<img src="${myAvatarUrl}" onerror="this.parentElement.innerHTML='${getInitial(currentUser.username)}'" />` : getInitial(currentUser.username)}
-          </div>
-          <span class="tb-name">${escapeHtml(currentUser.username)}</span>
-          <button class="icon-btn" onclick="toggleMenu()">☰</button>
+document.getElementById('app').innerHTML = `
+  <div class="tbw">
+    <div class="tb">
+       <div class="logo"><div class="logo-icon">☁️</div>Family Vault</div>
+      <div class="tb-r">
+        <button id="themeToggleBtn" class="icon-btn" onclick="toggleTheme()" title="Toggle theme">${(THEMES.find(x=>x.id===theme)||THEMES[0]).icon}</button>
+        <button class="icon-btn" onclick="performRefresh()" title="Refresh data">🔄</button>
+        <div class="av" onclick="openProfilePicModal()" title="Change profile picture">
+          ${myAvatarUrl ? `<img src="${myAvatarUrl}" onerror="this.parentElement.innerHTML='${getInitial(currentUser.username)}'" />` : getInitial(currentUser.username)}
         </div>
+        <span class="tb-name">${escapeHtml(currentUser.username)}</span>
+        <button class="icon-btn" onclick="toggleMenu()">☰</button>
       </div>
     </div>
+  </div>
 
     <div id="menuOverlay" class="menu-overlay" onclick="toggleMenu()"></div>
     <div id="menuPanel" class="menu-panel">
@@ -2071,11 +2106,15 @@ const renderFolderView = () => {
 
   const folder = visibleFolders.find(f => f.id === currentFolder);
   if (!folder) { currentFolder = null; renderFolderView(); return; }
+  const canEdit = canDeleteFolder(folder);
   container.innerHTML = `
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap">
-      <span style="color:var(--a1);cursor:pointer;font-weight:700;font-size:13px" onclick="goBackToFolders()">📁 All Folders</span>
-      <span style="color:var(--tx3)">›</span>
-      <span style="font-weight:700;font-size:13px">${escapeHtml(folder.name)}</span>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <span style="color:var(--a1);cursor:pointer;font-weight:700;font-size:13px" onclick="goBackToFolders()">📁 All Folders</span>
+        <span style="color:var(--tx3)">›</span>
+        <span style="font-weight:700;font-size:13px">${escapeHtml(folder.name)}</span>
+      </div>
+      ${canEdit ? `<button class="btn btn-gh btn-sm" onclick="showEditLinkModal(${folder.id},'${escapeHtml(folder.name)}')">✏️ Edit Folder</button>` : ''}
     </div>
     <div class="card" style="text-align:center;padding:20px 14px">
       <div style="font-size:54px;margin-bottom:12px">📁</div>
@@ -2083,6 +2122,7 @@ const renderFolderView = () => {
       <div style="font-size:11px;color:var(--tx3);margin-bottom:18px">Created by ${escapeHtml(folder.createdBy)}</div>
       <button class="btn btn-p btn-lg btn-w" onclick="openCloudFolder('${escapeHtml(folder.driveLink || '')}','${escapeHtml(folder.name)}')">☁️ Open in Google Drive</button>
       ${!folder.driveLink ? `<div class="al al-i" style="margin-top:10px">⚠️ No Google Drive link set.</div>` : ''}
+      ${canEdit ? `<div style="margin-top:12px"><button class="btn btn-gh btn-sm" onclick="showEditLinkModal(${folder.id},'${escapeHtml(folder.name)}')">✏️ Edit Name or Link</button></div>` : ''}
     </div>
   `;
 };
@@ -2322,6 +2362,51 @@ const applyCustomColor = async () => {
     showMessage('Error applying custom color', 'error');
   }
 };
+const checkAndApplyCustomColor = async () => {
+  const colorPicker = document.getElementById('customColorPicker');
+  if (!colorPicker) return;
+  
+  const customColor = colorPicker.value.toUpperCase();
+  const msgEl = document.getElementById('customColorMsg');
+  
+  // Check if color is already taken by another user
+  let colorInUse = false;
+  let colorUser = null;
+  
+  for (const [username, profile] of Object.entries(userProfiles)) {
+    if (username !== currentUser.username && profile.folder_color && profile.folder_color.toUpperCase() === customColor) {
+      colorInUse = true;
+      colorUser = username;
+      break;
+    }
+  }
+  
+  if (colorInUse) {
+    if (msgEl) msgEl.innerHTML = `<span style="color:var(--danger)">❌ This color is already used by ${colorUser}. Please choose a different color.</span>`;
+    return;
+  }
+  
+  // Check if it's in the predefined colors list
+  const predefinedColor = AVAILABLE_COLORS.find(c => c.value.toUpperCase() === customColor);
+  if (predefinedColor && predefinedColor.takenBy && predefinedColor.takenBy !== currentUser.username) {
+    if (msgEl) msgEl.innerHTML = `<span style="color:var(--danger)">❌ ${predefinedColor.name} is already used by ${predefinedColor.takenBy}.</span>`;
+    return;
+  }
+  
+  if (msgEl) msgEl.innerHTML = `<span style="color:var(--success)">✅ Available! Click again to confirm or use the button below.</span>`;
+  
+  // Apply the color
+  const success = await upsertUserProfile(currentUser.username, { folder_color: customColor });
+  if (success) {
+    await loadTakenColors();
+    showMessage(`✅ Custom color applied!`, 'success');
+    await updateExistingFoldersColor(customColor);
+    renderSettings();
+    renderFolderView();
+  } else {
+    showMessage('Error applying custom color', 'error');
+  }
+};
 // ============ RENDER: SETTINGS ============
 const renderSettings = () => {
   const container = document.getElementById('settingsContainer'); if (!container) return;
@@ -2356,7 +2441,7 @@ const renderSettings = () => {
           const isActive = currentColor === color.value;
           return `
             <div class="color-option ${isActive ? 'active' : ''} ${isTaken ? 'taken' : ''}" 
-                 onclick="${!isTaken ? `updateUserFolderColor('${color.value}')` : ''}"
+                 onclick="${!isTaken ? `updateUserFolderColor('${color.value}')` : `showMessage('❌ ${color.name} is already used by ${color.takenBy}', 'error')`}"
                  style="background:${color.value};border-radius:12px;padding:8px 4px;text-align:center;cursor:${isTaken ? 'not-allowed' : 'pointer'};opacity:${isTaken ? 0.5 : 1};border:2px solid ${isActive ? '#fff' : 'transparent'};box-shadow:${isActive ? '0 0 0 2px var(--a1)' : 'none'}">
               <div style="font-size:20px;margin-bottom:4px">${color.emoji}</div>
               <div style="font-size:9px;color:white;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,0.3)">${color.name}</div>
@@ -2365,7 +2450,18 @@ const renderSettings = () => {
           `;
         }).join('')}
       </div>
-      <div style="font-size:9px;color:var(--tx3);text-align:center;margin-top:4px">
+      
+      <!-- Custom Color Picker -->
+      <div style="margin-top:12px;padding-top:8px;border-top:1px solid var(--bd)">
+        <div class="ctitle" style="margin-bottom:6px">🎨 Custom Color</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="color" id="customColorPicker" value="${currentColor}" style="width:50px;height:40px;border-radius:8px;border:1px solid var(--bd);cursor:pointer">
+          <button class="btn btn-sm btn-gh" onclick="checkAndApplyCustomColor()" style="flex:1">Apply Custom Color</button>
+        </div>
+        <div id="customColorMsg" style="font-size:9px;color:var(--tx3);margin-top:6px"></div>
+      </div>
+      
+      <div style="font-size:9px;color:var(--tx3);text-align:center;margin-top:8px;padding:6px;background:var(--bg3);border-radius:8px">
         💡 Each family member gets a unique folder color. Colors shown as "taken" are already used by someone else.
       </div>
     </div>
@@ -2392,7 +2488,8 @@ const renderSettings = () => {
       <div class="pw-w"><input type="password" id="newPassword" placeholder="New password (min 6 chars)"><button class="eye-btn" onclick="togglePassword('newPassword')">👁️</button></div>
       <div class="pw-w"><input type="password" id="confirmPassword" placeholder="Confirm new password"><button class="eye-btn" onclick="togglePassword('confirmPassword')">👁️</button></div>
       <button class="btn btn-p btn-w" onclick="changePassword()">Update Password</button>
-    </div>`;
+    </div>
+  `;
 };
 // ============ RENDER: ADMIN ============
 const renderAdminPanel = async () => {
@@ -2482,17 +2579,76 @@ const deleteUserAccount = async (username) => {
   if (success) { showMessage(`User "${username}" deleted!`, 'success'); renderAdminPanel(); }
   else showMessage('Error deleting user', 'error');
 };
-
+// Add this function to edit folder name
+const editFolderName = async (folderId) => {
+  const folder = folders.find(f => f.id === folderId);
+  if (!folder) return;
+  
+  // Check permissions
+  if (!canDeleteFolder(folder)) { 
+    showMessage('You cannot edit this folder.', 'error'); 
+    return; 
+  }
+  
+  const newName = prompt('Enter new folder name:', folder.name);
+  if (!newName || newName.trim() === '') return;
+  if (newName.trim() === folder.name) return;
+  
+  // Check if folder name already exists (case insensitive)
+  const nameExists = folders.some(f => f.name.toLowerCase() === newName.trim().toLowerCase() && f.id !== folderId);
+  if (nameExists) {
+    showMessage('A folder with this name already exists!', 'error');
+    return;
+  }
+  
+  const oldName = folder.name;
+  folder.name = newName.trim();
+  
+  try {
+    const r = await sbFetch(`folders?id=eq.${folder.id}`, 'PATCH', { name: folder.name });
+    if (r.ok) {
+      showMessage(`Folder renamed from "${oldName}" to "${folder.name}"! ✅`, 'success');
+      await loadFoldersFromCloud();
+      renderFolderView();
+    } else {
+      folder.name = oldName; // revert on error
+      showMessage('Error renaming folder', 'error');
+    }
+  } catch(e) {
+    folder.name = oldName;
+    showMessage('Error renaming folder', 'error');
+  }
+};
 // ============ FOLDER MODALS ============
 const showEditLinkModal = (folderId, folderName) => {
   closeModal();
+  const folder = folders.find(f => f.id === folderId);
+  const canEdit = canDeleteFolder(folder);
+  
   document.body.insertAdjacentHTML('beforeend', `
     <div class="modal-overlay" id="editLinkModal" onclick="closeModal()">
       <div class="modal-content" onclick="event.stopPropagation()">
-        <div class="modal-title">🔗 Edit Drive Link</div>
-        <div class="modal-sub">Folder: <strong>${escapeHtml(folderName)}</strong></div>
-        <input type="text" id="driveLinkUrl" placeholder="Paste Google Drive folder link" autocomplete="off">
-        <div class="modal-buttons"><button class="btn btn-p" onclick="saveDriveLink(${folderId})">Save Link</button><button class="btn btn-gh" onclick="closeModal()">Cancel</button></div>
+        <div class="modal-title">✏️ Edit Folder</div>
+        <div class="modal-sub">Edit folder details</div>
+        ${canEdit ? `
+          <div style="margin-bottom:6px">
+            <label style="font-size:10px;font-weight:700;color:var(--tx2);margin-bottom:2px;display:block">📁 Folder Name</label>
+            <input type="text" id="folderName" placeholder="Folder name" value="${escapeHtml(folderName)}" autocomplete="off">
+          </div>
+        ` : `
+          <div style="margin-bottom:6px;background:var(--bg3);border-radius:8px;padding:8px;font-size:11px">
+            <strong>📁 Folder:</strong> ${escapeHtml(folderName)}
+          </div>
+        `}
+        <div style="margin-bottom:6px">
+          <label style="font-size:10px;font-weight:700;color:var(--tx2);margin-bottom:2px;display:block">☁️ Google Drive Link</label>
+          <input type="text" id="driveLinkUrl" placeholder="Paste Google Drive folder link" value="${escapeHtml(folder?.driveLink || '')}" autocomplete="off">
+        </div>
+        <div id="editFolderMsg"></div>
+        <div class="modal-buttons">
+          <button class="btn btn-p" onclick="saveFolderEdits(${folderId})">Save Changes</button>
+          <button class="btn btn-gh" onclick="closeModal()">Cancel</button>
+        </div>
       </div>
     </div>`);
 };
@@ -2500,6 +2656,64 @@ const saveDriveLink = async (folderId) => { const link = document.getElementById
 const closeModal = () => { document.getElementById('editLinkModal')?.remove(); };
 const openWhatsApp = (phone) => { let clean = phone.replace(/\D/g, ''); if (clean.startsWith('0')) clean = '27' + clean.substring(1); if (!clean.startsWith('27')) clean = '27' + clean; window.open(`https://wa.me/${clean}`, '_blank'); };
 
+const saveFolderEdits = async (folderId) => {
+  const folder = folders.find(f => f.id === folderId);
+  if (!folder) return;
+  
+  const canEdit = canDeleteFolder(folder);
+  const newName = document.getElementById('folderName')?.value.trim();
+  const newLink = document.getElementById('driveLinkUrl')?.value.trim();
+  const msgEl = document.getElementById('editFolderMsg');
+  
+  let hasChanges = false;
+  let nameChanged = false;
+  
+  // Validate name if it was changed
+  if (canEdit && newName && newName !== folder.name) {
+    // Check if folder name already exists
+    const nameExists = folders.some(f => f.name.toLowerCase() === newName.toLowerCase() && f.id !== folderId);
+    if (nameExists) {
+      if (msgEl) msgEl.innerHTML = `<div class="al al-e">A folder with this name already exists!</div>`;
+      return;
+    }
+    folder.name = newName;
+    nameChanged = true;
+    hasChanges = true;
+  }
+  
+  // Update link if changed
+  if (newLink !== folder.driveLink) {
+    folder.driveLink = newLink;
+    hasChanges = true;
+  }
+  
+  if (!hasChanges) {
+    closeModal();
+    return;
+  }
+  
+  if (msgEl) msgEl.innerHTML = `<div class="al al-i">Saving changes...</div>`;
+  
+  try {
+    const updates = {};
+    if (nameChanged) updates.name = folder.name;
+    if (newLink !== folder.driveLink) updates.drive_link = newLink;
+    
+    const r = await sbFetch(`folders?id=eq.${folder.id}`, 'PATCH', updates);
+    if (r.ok) {
+      showMessage('Folder updated successfully! ✅', 'success');
+      await loadFoldersFromCloud();
+      closeModal();
+      renderFolderView();
+    } else {
+      // Revert changes on error
+      if (nameChanged) folder.name = oldName;
+      if (msgEl) msgEl.innerHTML = `<div class="al al-e">Error saving changes</div>`;
+    }
+  } catch(e) {
+    if (msgEl) msgEl.innerHTML = `<div class="al al-e">Error: ${e.message}</div>`;
+  }
+};
 // ============ FORGOT PASSWORD ============
 const openForgotModal = () => {
   document.getElementById('forgotModalOverlay')?.remove();
@@ -2625,6 +2839,10 @@ const performRefresh = async () => {
   if (isRefreshing) return;
   isRefreshing = true;
   
+  // Add spinning animation to refresh button
+  const refreshBtn = document.querySelector('.tb-r .icon-btn[title="Refresh data"]');
+  if (refreshBtn) refreshBtn.classList.add('refreshing');
+  
   const refreshIndicator = document.querySelector('.refresh-indicator');
   if (refreshIndicator) {
     refreshIndicator.innerHTML = '<div class="refresh-spinner"></div><span>Refreshing...</span>';
@@ -2632,7 +2850,6 @@ const performRefresh = async () => {
   }
   
   try {
-    // Refresh all data
     await Promise.all([
       loadFoldersFromCloud(),
       loadCalendarEvents(),
@@ -2640,7 +2857,6 @@ const performRefresh = async () => {
       loadUserProfiles()
     ]);
     
-    // Re-render current view
     if (currentView === 'home') renderHome();
     else if (currentView === 'folders') renderFolderView();
     else if (currentView === 'calendar') renderCalendar();
@@ -2655,12 +2871,12 @@ const performRefresh = async () => {
     showMessage('Refresh failed. Check connection.', 'error');
   }
   
-  // Hide indicator
   setTimeout(() => {
     if (refreshIndicator) {
       refreshIndicator.style.top = '-50px';
       refreshIndicator.innerHTML = '<div class="refresh-spinner"></div><span>Pull to refresh...</span>';
     }
+    if (refreshBtn) refreshBtn.classList.remove('refreshing');
     isRefreshing = false;
   }, 800);
 };
@@ -2806,7 +3022,7 @@ const showSignupBack = () => { document.getElementById('signupForm').style.displ
 window.onload = async () => {
   setTheme(getTheme());
   const fns = {
-    doLogin, doSignup, showLogin, showSignup, showSignupBack, toggleMenu, navigateTo, signOut,makeUserAdmin,removeAdmin,applyCustomColor,
+    doLogin, doSignup, showLogin, showSignup, showSignupBack, toggleMenu, navigateTo, signOut,makeUserAdmin,removeAdmin,applyCustomColor,checkAndApplyCustomColor,
     openForgotModal, closeForgotModal, checkUserForRecovery, openSecurityModal, closeSecurityModal, verifySecurityAnswer,
     createFolderInDrive, showEditLinkModal, saveDriveLink, deleteFolder, closeModal, openCloudFolder, openFolderActions, goBackToFolders,
     changePassword, togglePassword, deleteUserAccount, openWhatsApp, updateProfile, toggleTheme, setTheme, renderSettings,
