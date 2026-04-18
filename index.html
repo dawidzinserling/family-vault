@@ -1632,9 +1632,9 @@ const toggleLocationPermission = async (targetUsername) => {
   renderContacts();
 };
 
-// UPDATED: Find family member — fetches FRESH data from Supabase, then opens Maps
 const findFamilyMember = async (username) => {
-  showMessage(`Getting ${username}'s location…`, 'info');
+  showMessage(`Getting ${username}'s location...`, 'info');
+  
   // Pull the freshest data directly from Supabase
   try {
     const r = await sbFetch(`user_profiles?username=eq.${encodeURIComponent(username)}&select=*`, 'GET');
@@ -1656,11 +1656,10 @@ const findFamilyMember = async (username) => {
     showMessage(`${username}'s location is not available. They may need to open the app.`, 'error');
     return;
   }
-  const updated = prof.location_updated ? timeAgoStr(prof.location_updated) : 'Unknown';
+  
+  // Open maps directly without confirmation
   const url = `https://www.google.com/maps/search/?api=1&query=${prof.location_lat},${prof.location_lng}`;
-  if (window.confirm(`📍 Open ${username}'s location in Google Maps?\n\nLast updated: ${updated}`)) {
-    window.open(url, '_blank');
-  }
+  window.open(url, '_blank');
 };
 
 // Manual location refresh (still available as backup)
