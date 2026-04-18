@@ -47,7 +47,50 @@ button, .nav-tab, .menu-item, .folder-card {
     gap: 6px;
   }
 }
-/* ============ THEME VARIABLES ============ */
+.folder-grid {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.folder-card {
+  padding: 6px 4px !important;
+  border-radius: 10px !important;
+}
+
+.folder-card .folder-icon {
+  font-size: 22px !important;
+  margin-bottom: 2px !important;
+}
+
+.folder-card .folder-name {
+  font-size: 10px !important;
+  margin-bottom: 2px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.folder-card div[style*="font-size:9px"] {
+  font-size: 8px !important;
+}
+
+.folder-card .folder-actions {
+  margin-top: 4px !important;
+  gap: 3px !important;
+}
+
+.folder-card .btn-sm {
+  padding: 2px 6px !important;
+  font-size: 9px !important;
+}
+
+@media screen and (max-width: 450px) {
+  .folder-grid {
+    grid-template-columns: 1fr;
+  }
+}
 /* ============ IMPROVED THEMES - Clean backgrounds, colored accents ============ */
 
 /* Base Light Theme (default - clean white) */
@@ -792,6 +835,41 @@ input:focus, textarea:focus {
   font-weight: 900 !important;
 }
 
+.sort-option:hover {
+  background: var(--s2);
+}
+
+.sort-dropdown {
+  position: relative;
+}
+
+#sortMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  z-index: 100;
+  min-width: 120px;
+  margin-top: 4px;
+  box-shadow: var(--shadow);
+}
+
+.sort-option {
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: background 0.2s;
+}
+
+.sort-option:first-child {
+  border-bottom: 1px solid var(--bd);
+}
+
+.sort-option:hover {
+  background: var(--s2);
+}
 </style>
 
 </head>
@@ -862,15 +940,12 @@ const AVAILABLE_COLORS = [
   { name: 'Salmon', value: '#EF9A9A', emoji: '🩷', takenBy: null },
 ];
 
-// Load taken colors from user profiles
 const loadTakenColors = async () => {
   try {
     const r = await sbFetch('user_profiles?select=username,folder_color', 'GET');
     if (r.ok) {
       const data = await r.json();
-      // Reset takenBy for all colors
       AVAILABLE_COLORS.forEach(color => { color.takenBy = null; });
-      // Mark taken colors
       data.forEach(profile => {
         if (profile.folder_color && profile.username !== currentUser?.username) {
           const color = AVAILABLE_COLORS.find(c => c.value === profile.folder_color);
@@ -881,32 +956,26 @@ const loadTakenColors = async () => {
   } catch(e) { console.error('Error loading taken colors:', e); }
 };
 
-// Get user's folder color
 const getUserFolderColor = () => {
   const profile = userProfiles[currentUser?.username];
   return profile?.folder_color || '#1E90FF';
 };
-// Update all existing folders created by current user with new color
+
 const updateExistingFoldersColor = async (newColor) => {
   try {
-    // Get all folders created by current user
     const userFolders = folders.filter(f => f.createdBy === currentUser.username);
-    
-    // Update each folder's creatorColor
+   
     for (const folder of userFolders) {
       folder.creatorColor = newColor;
-      // Update in Supabase
       const r = await sbFetch(`folders?id=eq.${folder.id}`, 'PATCH', { creator_color: newColor });
       if (!r.ok) console.error(`Failed to update folder ${folder.id}`);
     }
     
-    // Refresh folders array
     await loadFoldersFromCloud();
     renderFolderView();
   } catch(e) { console.error('Error updating existing folders:', e); }
 };
 const updateUserFolderColor = async (colorValue) => {
-  // Check if color is taken by another user
   const colorTaken = AVAILABLE_COLORS.find(c => c.value === colorValue && c.takenBy && c.takenBy !== currentUser.username);
   if (colorTaken) {
     showMessage(`❌ ${colorTaken.name} is already used by ${colorTaken.takenBy}. Please choose another color.`, 'error');
@@ -917,7 +986,6 @@ const updateUserFolderColor = async (colorValue) => {
   if (success) {
     showMessage(`✅ Folder color updated to ${AVAILABLE_COLORS.find(c => c.value === colorValue)?.name}!`, 'success');
     
-    // Update ALL existing folders created by this user
     await updateExistingFoldersColor(colorValue);
     
     await loadTakenColors();
@@ -928,7 +996,49 @@ const updateUserFolderColor = async (colorValue) => {
   return false;
 };
   
- 
+// ============ FOLDER SORTING ============
+let folderSortBy = localStorage.getItem('folderSortBy') || 'name'; // name, date, creator
+
+const sortFolders = (foldersToSort) => {
+  const sorted = [...foldersToSort];
+  switch (folderSortBy) {
+    case 'name':
+      sorted.sort((a, b) => a.name.localeCompare(b.name));
+      break;
+    case 'date':
+      sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      break;
+    case 'creator':
+      sorted.sort((a, b) => a.createdBy.localeCompare(b.createdBy));
+      break;
+    default:
+      sorted.sort((a, b) => a.name.localeCompare(b.name));
+  }
+  return sorted;
+};
+
+const setFolderSort = (sortType) => {
+  folderSortBy = sortType;
+  localStorage.setItem('folderSortBy', sortType);
+  renderFolderView();
+};
+
+const toggleSortMenu = () => {
+  const menu = document.getElementById('sortMenu');
+  if (menu) {
+    const isVisible = menu.style.display === 'block';
+    menu.style.display = isVisible ? 'none' : 'block';
+  }
+};
+
+// Close sort menu when clicking outside
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('sortMenu');
+  const sortBtn = document.querySelector('.sort-dropdown button');
+  if (menu && sortBtn && !sortBtn.contains(e.target) && !menu.contains(e.target)) {
+    menu.style.display = 'none';
+  }
+}); 
 // ============ STATE ============
 let currentUser = null, currentView = 'home', currentFolder = null, menuOpen = false;
 let forgotPhoneNumber = null, folders = [], calendarEvents = [], recipes = [];
@@ -1867,17 +1977,30 @@ const renderHome = () => {
     </div>`;
 };
 
-// ============ RENDER: FOLDER VIEW ============
 const renderFolderView = () => {
   const container = document.getElementById('foldersContainer'); if (!container) return;
-  const visibleFolders = getFolders();
+  let visibleFolders = getFolders();
   const userColor = getUserFolderColor();
+  
+  // Sort folders based on selected option
+  visibleFolders = sortFolders(visibleFolders);
 
   if (!currentFolder) {
     container.innerHTML = `
       <div class="sh">
         <div><div class="sh-t">📁 Folders</div><div class="sh-s">${visibleFolders.length} folder${visibleFolders.length !== 1 ? 's' : ''}</div></div>
-        <div style="display:flex;gap:6px;align-items:center">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <!-- Sort Dropdown -->
+          <div class="sort-dropdown" style="position:relative">
+            <button class="btn btn-gh btn-sm" onclick="toggleSortMenu()" style="display:flex;align-items:center;gap:4px">
+              🔽 Sort: ${folderSortBy === 'name' ? 'A-Z' : folderSortBy === 'date' ? 'Date' : 'Creator'}
+            </button>
+            <div id="sortMenu" style="display:none;position:absolute;top:100%;right:0;background:var(--s1);border:1px solid var(--bd);border-radius:8px;z-index:100;min-width:100px;margin-top:4px;box-shadow:var(--shadow)">
+              <div class="sort-option" onclick="setFolderSort('name');toggleSortMenu()" style="padding:6px 10px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--bd)">📄 Sort A-Z</div>
+              <div class="sort-option" onclick="setFolderSort('date');toggleSortMenu()" style="padding:6px 10px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--bd)">📅 Sort by Date</div>
+              <div class="sort-option" onclick="setFolderSort('creator');toggleSortMenu()" style="padding:6px 10px;cursor:pointer;font-size:11px">👤 Sort by Creator</div>
+            </div>
+          </div>
           <div class="view-toggle">
             <button class="view-btn ${folderViewMode === 'grid' ? 'active' : ''}" onclick="toggleFolderView('grid')">▦</button>
             <button class="view-btn ${folderViewMode === 'list' ? 'active' : ''}" onclick="toggleFolderView('list')">☰</button>
@@ -1903,16 +2026,16 @@ const renderFolderView = () => {
             const creatorRgb = hexToRgb(creatorColor);
             return `
               <div class="folder-card" onclick="openFolderActions(${folder.id})" style="--folder-color: ${creatorColor}; --folder-color-rgb: ${creatorRgb}; border-top-color: ${creatorColor}">
-                <div class="folder-icon" style="color:${creatorColor}">📁</div>
-                <div class="folder-name">${escapeHtml(folder.name)}</div>
-                <div style="font-size:9px;color:var(--tx3);margin-top:3px">
-                  <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${creatorColor};margin-right:4px"></span>
-                  ${escapeHtml(folder.createdBy)} · ${new Date(folder.createdAt).toLocaleDateString()}
+                <div class="folder-icon" style="color:${creatorColor};font-size:22px">📁</div>
+                <div class="folder-name" style="font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${escapeHtml(folder.name)}">${escapeHtml(folder.name)}</div>
+                <div style="font-size:7px;color:var(--tx3);margin-top:2px">
+                  <span style="display:inline-block;width:6px;height:6px;border-radius:2px;background:${creatorColor};margin-right:3px"></span>
+                  ${escapeHtml(folder.createdBy)}
                 </div>
-                ${folder.driveLink ? '<div style="font-size:9px;color:var(--a1);margin-top:4px;font-weight:700">☁️ Connected</div>' : '<div style="font-size:9px;color:var(--tx3);margin-top:4px">⚠️ No link</div>'}
-                <div class="folder-actions" onclick="event.stopPropagation()">
-                  <button class="btn btn-sm btn-gh" onclick="showEditLinkModal(${folder.id},'${escapeHtml(folder.name)}')">🔗 Link</button>
-                  ${canDeleteFolder(folder) ? `<button class="btn btn-sm btn-d" onclick="deleteFolder(${folder.id})">🗑️</button>` : ''}
+                ${folder.driveLink ? '<div style="font-size:7px;color:var(--a1);margin-top:2px">☁️</div>' : '<div style="font-size:7px;color:var(--tx3);margin-top:2px">⚠️</div>'}
+                <div class="folder-actions" onclick="event.stopPropagation()" style="margin-top:4px;gap:2px">
+                  <button class="btn btn-sm btn-gh" style="padding:2px 5px;font-size:8px" onclick="showEditLinkModal(${folder.id},'${escapeHtml(folder.name)}')">🔗</button>
+                  ${canDeleteFolder(folder) ? `<button class="btn btn-sm btn-d" style="padding:2px 5px;font-size:8px" onclick="deleteFolder(${folder.id})">🗑️</button>` : ''}
                 </div>
               </div>
             `;
@@ -1923,19 +2046,19 @@ const renderFolderView = () => {
           ${visibleFolders.map(folder => {
             const creatorColor = folder.creatorColor || '#1E90FF';
             return `
-              <div class="folder-list-item" onclick="openFolderActions(${folder.id})" style="border-left: 4px solid ${creatorColor}">
-                <div class="folder-list-icon" style="color:${creatorColor}">📁</div>
+              <div class="folder-list-item" onclick="openFolderActions(${folder.id})" style="border-left: 4px solid ${creatorColor};padding:6px 8px">
+                <div class="folder-list-icon" style="color:${creatorColor};font-size:18px">📁</div>
                 <div class="folder-list-info">
-                  <div class="folder-list-name">${escapeHtml(folder.name)}</div>
-                  <div class="folder-list-meta">
-                    <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${creatorColor};margin-right:4px"></span>
+                  <div class="folder-list-name" style="font-size:11px">${escapeHtml(folder.name)}</div>
+                  <div class="folder-list-meta" style="font-size:8px">
+                    <span style="display:inline-block;width:6px;height:6px;border-radius:2px;background:${creatorColor};margin-right:3px"></span>
                     ${escapeHtml(folder.createdBy)} · ${new Date(folder.createdAt).toLocaleDateString()}
                   </div>
                 </div>
-                <div class="folder-list-status ${folder.driveLink ? 'connected' : 'missing'}">${folder.driveLink ? '☁️ Connected' : '⚠️ No link'}</div>
+                <div class="folder-list-status ${folder.driveLink ? 'connected' : 'missing'}" style="font-size:8px;padding:1px 4px">${folder.driveLink ? '☁️' : '⚠️'}</div>
                 <div class="folder-list-actions" onclick="event.stopPropagation()">
-                  <button class="btn btn-sm btn-gh" onclick="showEditLinkModal(${folder.id},'${escapeHtml(folder.name)}')">🔗</button>
-                  ${canDeleteFolder(folder) ? `<button class="btn btn-sm btn-d" onclick="deleteFolder(${folder.id})">🗑️</button>` : ''}
+                  <button class="btn btn-sm btn-gh" style="padding:2px 5px;font-size:9px" onclick="showEditLinkModal(${folder.id},'${escapeHtml(folder.name)}')">🔗</button>
+                  ${canDeleteFolder(folder) ? `<button class="btn btn-sm btn-d" style="padding:2px 5px;font-size:9px" onclick="deleteFolder(${folder.id})">🗑️</button>` : ''}
                 </div>
               </div>
             `;
@@ -1963,7 +2086,6 @@ const renderFolderView = () => {
     </div>
   `;
 };
-
 // ============ RENDER: CALENDAR ============
 const renderCalendar = () => {
   const container = document.getElementById('calendarContainer'); if (!container) return;
