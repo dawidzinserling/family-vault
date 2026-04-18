@@ -447,7 +447,7 @@ textarea { resize:vertical; min-height:60px; }
 
 /* MODAL */
 .modal-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.8); z-index:1000; display:flex; align-items:center; justify-content:center; padding:14px; animation:fadeIn .15s ease; backdrop-filter:blur(7px); }
-.modal-content { background:var(--s1); border:1px solid var(--bd2); border-radius:14px; padding:14px 12px 12px; width:100%; max-width:340px; box-shadow:0 20px 50px rgba(0,0,0,.55); max-height:90vh; overflow-y:auto; }
+.modal-content { background:var(--s1); border:1px solid var(--bd2); border-radius:14px; padding:14px 12px 12px; width:100%; max-width:380px; box-shadow:0 20px 50px rgba(0,0,0,.55); max-height:90vh; overflow-y:auto; }
 .modal-title { font-size:14px; font-weight:900; color:var(--tx); margin-bottom:3px; letter-spacing:-.2px; }
 .modal-sub { font-size:10px; color:var(--tx2); margin-bottom:10px; line-height:1.5; }
 .modal-buttons { display:flex; gap:6px; margin-top:10px; }
@@ -877,6 +877,57 @@ input:focus, textarea:focus {
 
 .sort-option:hover {
   background: var(--s2);
+}
+
+/* Fix for recipe modal layout */
+.modal-content input,
+.modal-content textarea,
+.modal-content select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.modal-content .img-upload-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+.modal-content .img-upload-option {
+  flex: 1;
+  min-width: 100px;
+  text-align: center;
+}
+
+#recipeImagesPreview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+#recipeImagesPreview > div {
+  flex-shrink: 0;
+}
+
+#photoCountIndicator {
+  margin: 8px 0;
+  padding: 4px;
+  text-align: center;
+  clear: both;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.modal-buttons button {
+  flex: 1;
 }
 </style>
 
@@ -1717,8 +1768,7 @@ const openAddRecipeModal = () => {
   <div class="img-upload-option" onclick="triggerRecipeCameraCapture()"><span class="upload-icon">📷</span>Take Photo</div>
   <div class="img-upload-option" onclick="triggerRecipeImageUpload()"><span class="upload-icon">🖼️</span>Upload Images</div>
 </div>
-<div id="photoCountIndicator" style="font-size:10px;color:var(--tx3);text-align:center;margin-top:4px"></div>>
-      </div>
+<div id="photoCountIndicator" style="font-size:10px;color:var(--tx3);text-align:center;margin-top:4px"></div>
       <input type="file" id="recipeImageInput" accept="image/*" multiple style="display:none" onchange="handleRecipeImageSelect(this)">
       <input type="file" id="recipeCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleRecipeImageSelect(this)">
       <div id="recipeImagesPreview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div>
@@ -1764,8 +1814,7 @@ const openEditRecipeModal = (id) => {
   <div class="img-upload-option" onclick="triggerRecipeCameraCapture()"><span class="upload-icon">📷</span>Take Photo</div>
   <div class="img-upload-option" onclick="triggerRecipeImageUpload()"><span class="upload-icon">🖼️</span>Upload Images</div>
 </div>
-<div id="photoCountIndicator" style="font-size:10px;color:var(--tx3);text-align:center;margin-top:4px"></div>>
-      </div>
+<div id="photoCountIndicator" style="font-size:10px;color:var(--tx3);text-align:center;margin-top:4px"></div>
       <input type="file" id="recipeImageInput" accept="image/*" multiple style="display:none" onchange="handleRecipeImageSelect(this)">
       <input type="file" id="recipeCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleRecipeImageSelect(this)">
       <div id="recipeImagesPreview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div>
