@@ -1713,11 +1713,13 @@ const openAddRecipeModal = () => {
       <textarea id="recipeIngredients" placeholder="Ingredients (optional)" style="min-height:80px"></textarea>
       <textarea id="recipeInstructions" placeholder="Instructions (optional)" style="min-height:80px"></textarea>
       <div class="ctitle" style="margin-top:4px">📷 Recipe Photos (max 5)</div>
-      <div class="img-upload-options">
-        <div class="img-upload-option" onclick="triggerRecipeCameraCapture()"><span class="upload-icon">📷</span>Take Photo</div>
-        <div class="img-upload-option" onclick="triggerRecipeImageUpload()"><span class="upload-icon">🖼️</span>Upload Image</div>
+     <div class="img-upload-options">
+  <div class="img-upload-option" onclick="triggerRecipeCameraCapture()"><span class="upload-icon">📷</span>Take Photo</div>
+  <div class="img-upload-option" onclick="triggerRecipeImageUpload()"><span class="upload-icon">🖼️</span>Upload Images</div>
+</div>
+<div id="photoCountIndicator" style="font-size:10px;color:var(--tx3);text-align:center;margin-top:4px"></div>>
       </div>
-      <input type="file" id="recipeImageInput" accept="image/*" style="display:none" onchange="handleRecipeImageSelect(this)">
+      <input type="file" id="recipeImageInput" accept="image/*" multiple style="display:none" onchange="handleRecipeImageSelect(this)">
       <input type="file" id="recipeCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleRecipeImageSelect(this)">
       <div id="recipeImagesPreview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div>
       <div id="recipeModalMsg"></div>
@@ -1759,10 +1761,12 @@ const openEditRecipeModal = (id) => {
       <textarea id="recipeInstructions" placeholder="Instructions (optional)" style="min-height:80px">${escapeHtml(rec.instructions)}</textarea>
       <div class="ctitle" style="margin-top:4px">📷 Recipe Photos (max 5)</div>
       <div class="img-upload-options">
-        <div class="img-upload-option" onclick="triggerRecipeCameraCapture()"><span class="upload-icon">📷</span>Take Photo</div>
-        <div class="img-upload-option" onclick="triggerRecipeImageUpload()"><span class="upload-icon">🖼️</span>Upload Image</div>
+  <div class="img-upload-option" onclick="triggerRecipeCameraCapture()"><span class="upload-icon">📷</span>Take Photo</div>
+  <div class="img-upload-option" onclick="triggerRecipeImageUpload()"><span class="upload-icon">🖼️</span>Upload Images</div>
+</div>
+<div id="photoCountIndicator" style="font-size:10px;color:var(--tx3);text-align:center;margin-top:4px"></div>>
       </div>
-      <input type="file" id="recipeImageInput" accept="image/*" style="display:none" onchange="handleRecipeImageSelect(this)">
+      <input type="file" id="recipeImageInput" accept="image/*" multiple style="display:none" onchange="handleRecipeImageSelect(this)">
       <input type="file" id="recipeCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleRecipeImageSelect(this)">
       <div id="recipeImagesPreview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div>
       <div id="recipeModalMsg"></div>
@@ -1782,32 +1786,51 @@ const triggerRecipeImageUpload = () => document.getElementById('recipeImageInput
 const triggerRecipeCameraCapture = () => document.getElementById('recipeCameraInput')?.click();
 
 const handleRecipeImageSelect = async (input) => {
-  const file = input.files?.[0]; 
-  if (!file) return;
-  if (pendingRecipeImages.length >= 5) {
-    showMessage('Maximum 5 photos per recipe', 'error');
+  const files = Array.from(input.files || []);
+  if (files.length === 0) return;
+  
+  // Check total would exceed limit
+  if (pendingRecipeImages.length + files.length > 5) {
+    showMessage(`Maximum 5 photos per recipe. You already have ${pendingRecipeImages.length} photo(s).`, 'error');
     return;
   }
   
-  try {
-    const previewContainer = document.getElementById('recipeImagesPreview');
-    if (previewContainer) {
-      const loadingDiv = document.createElement('div');
-      loadingDiv.className = 'al al-i';
-      loadingDiv.style.padding = '4px 8px';
-      loadingDiv.style.fontSize = '10px';
-      loadingDiv.textContent = '📸 Compressing...';
-      previewContainer.appendChild(loadingDiv);
-    }
-    
-    const compressedImage = await compressImage(file, 1200, 0.78);
-    pendingRecipeImages.push(compressedImage);
-    updateRecipeImagesPreview();
-  } catch(err) {
-    showMessage('Could not process image. Please try another.', 'error');
-    console.error('Recipe image compress error:', err);
+  const previewContainer = document.getElementById('recipeImagesPreview');
+  if (previewContainer) {
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'al al-i';
+    loadingDiv.style.padding = '4px 8px';
+    loadingDiv.style.fontSize = '10px';
+    loadingDiv.textContent = `📸 Compressing ${files.length} image(s)...`;
+    previewContainer.appendChild(loadingDiv);
   }
-  input.value = ''; // Clear input to allow selecting same file again
+  
+  let successCount = 0;
+  let errorCount = 0;
+  
+  for (const file of files) {
+    try {
+      const compressedImage = await compressImage(file, 1200, 0.78);
+      pendingRecipeImages.push(compressedImage);
+      successCount++;
+    } catch(err) {
+      errorCount++;
+      console.error('Recipe image compress error:', err);
+    }
+  }
+  
+  // Update preview
+  updateRecipeImagesPreview();
+  
+  // Show result message
+  if (successCount > 0) {
+    showMessage(`✅ ${successCount} photo(s) added! Total: ${pendingRecipeImages.length}/5`, 'success');
+  }
+  if (errorCount > 0) {
+    showMessage(`⚠️ ${errorCount} photo(s) failed to load`, 'error');
+  }
+  
+  input.value = ''; // Clear input to allow selecting same files again
 };
 
 const updateRecipeImagesPreview = () => {
@@ -1816,22 +1839,32 @@ const updateRecipeImagesPreview = () => {
   
   if (pendingRecipeImages.length === 0) {
     container.innerHTML = '<div style="font-size:10px;color:var(--tx3);padding:4px">No photos added yet. Upload up to 5 photos.</div>';
-    return;
+  } else {
+    container.innerHTML = pendingRecipeImages.map((img, index) => `
+      <div style="position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:1px solid var(--bd)">
+        <img src="${img}" style="width:100%;height:100%;object-fit:cover">
+        <button class="remove-img" onclick="removeRecipeImage(${index})" style="position:absolute;top:2px;right:2px;width:18px;height:18px;background:rgba(0,0,0,0.6);border:none;border-radius:4px;color:white;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+      </div>
+    `).join('');
   }
   
-  container.innerHTML = pendingRecipeImages.map((img, index) => `
-    <div style="position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:1px solid var(--bd)">
-      <img src="${img}" style="width:100%;height:100%;object-fit:cover">
-      <button class="remove-img" onclick="removeRecipeImage(${index})" style="position:absolute;top:2px;right:2px;width:18px;height:18px;background:rgba(0,0,0,0.6);border:none;border-radius:4px;color:white;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
-    </div>
-  `).join('');
+  // Update the photo count indicator
+  updatePhotoCountIndicator();
+};
+const updatePhotoCountIndicator = () => {
+  const indicator = document.getElementById('photoCountIndicator');
+  if (indicator) {
+    const remaining = 5 - pendingRecipeImages.length;
+    indicator.innerHTML = `📸 ${pendingRecipeImages.length}/5 photos used. ${remaining} slot${remaining !== 1 ? 's' : ''} remaining.`;
+  }
 };
 
 const removeRecipeImage = (index) => {
   pendingRecipeImages.splice(index, 1);
   updateRecipeImagesPreview();
-  showMessage('Photo removed. Save recipe to confirm changes.', 'info');
+  showMessage(`Photo removed. ${5 - pendingRecipeImages.length} slots remaining. Save recipe to confirm changes.`, 'info');
 };
+
 
 const clearRecipeImages = () => {
   pendingRecipeImages = [];
@@ -3208,7 +3241,7 @@ window.onload = async () => {
     changePassword, togglePassword, deleteUserAccount, openWhatsApp, updateProfile, toggleTheme, setTheme, renderSettings,
     openAddEventModal, openEditEventModal, doAddEvent, doEditEvent, confirmDeleteEvent, closeCalModal, calPrevMonth, calNextMonth, calSelectDay, calSetFilter,
     openAddRecipeModal, openEditRecipeModal, closeRecipeModal, doSaveRecipe, confirmDeleteRecipe, viewRecipeDetail, backToRecipeList, setRecipeFilter,
-    triggerRecipeImageUpload, triggerRecipeCameraCapture, handleRecipeImageSelect, clearRecipeImage,updateRecipeImagesPreview,removeRecipeImage,clearRecipeImages,
+    triggerRecipeImageUpload, triggerRecipeCameraCapture, handleRecipeImageSelect, clearRecipeImage,updateRecipeImagesPreview,removeRecipeImage,clearRecipeImages,updatePhotoCountIndicator,
     openProfilePicModal, closeAvatarModal, triggerAvatarUpload, triggerAvatarCamera, handleAvatarSelect, clearAvatarPreview, doSaveAvatar,
     updateMyLocation, findFamilyMember, toggleLocationPermission, toggleFolderView
   };
