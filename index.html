@@ -607,21 +607,41 @@ input:focus, textarea:focus {
 }
 
 /* Folder card with user color */
-  .folder-card {
-    border-top: 3px solid var(--folder-color, var(--a1));
-  }
-  
+.folder-card {
+  border-top: 4px solid var(--folder-color, var(--a1));
+  position: relative;
+  overflow: hidden;
+}
+.folder-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--folder-color, var(--a1));
+  pointer-events: none;
+}  
   .folder-card .folder-icon {
-    color: var(--folder-color, var(--a1));
-  }
+  color: var(--folder-color, var(--a1));
+  font-size: 32px;
+  transition: transform 0.2s;
+}
+ .folder-list-item {
+  border-left: 4px solid var(--folder-color, var(--a1));
+  position: relative;
+}
   
-  .folder-list-item {
-    border-left: 3px solid var(--folder-color, var(--a1));
-  }
-  
-  .folder-list-icon {
-    color: var(--folder-color, var(--a1));
-  }
+ .folder-list-icon {
+  color: var(--folder-color, var(--a1));
+  font-size: 22px;
+}
+
+.folder-card {
+  background: linear-gradient(to bottom, 
+    rgba(var(--folder-color-rgb, 30, 144, 255), 0.05) 0%, 
+    var(--s1) 8px);
+}
   
   /* Color picker styles (add these too) */
   .color-option {
@@ -629,7 +649,11 @@ input:focus, textarea:focus {
     position: relative;
     overflow: hidden;
   }
-  
+  .folder-list-item {
+  background: linear-gradient(to right, 
+    rgba(var(--folder-color-rgb, 30, 144, 255), 0.05) 0%, 
+    var(--s1) 8px);
+}
   .color-option:hover:not(.taken) {
     transform: scale(1.05);
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
@@ -685,6 +709,88 @@ input:focus, textarea:focus {
     background: var(--a1);
     border-radius: 4px;
   }
+
+
+.sh-t {
+  font-size: 20px !important;
+  font-weight: 900 !important;
+}
+
+.stat-num {
+  font-size: 28px !important;
+  font-weight: 900 !important;
+}
+
+.stat-label {
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.5px !important;
+}
+
+.bottom-nav {
+  padding: 8px 2px calc(env(safe-area-inset-bottom) + 8px) !important;
+  min-height: 68px !important;
+}
+
+.nav-tab {
+  min-width: 55px !important;
+  padding: 6px 8px !important;
+}
+
+.nav-tab .nt-icon {
+  font-size: 24px !important;
+  margin-bottom: 2px !important;
+}
+
+.nav-tab .nt-label {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+}
+
+.nav-tab.active {
+  color: var(--a1);
+  position: relative;
+}
+
+.nav-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background: var(--a1);
+  border-radius: 3px;
+}
+
+.sh-s {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  margin-top: 4px !important;
+}
+
+.stat-card {
+  padding: 12px 4px !important;
+}
+
+.card[style*="text-align:center"] div[style*="font-size:30px"] {
+  font-size: 40px !important;
+}
+
+.card[style*="text-align:center"] div[style*="font-weight:800"] {
+  font-size: 14px !important;
+}
+
+.card[style*="background:linear-gradient"] div[style*="font-size:36px"] {
+  font-size: 48px !important;
+}
+
+.card[style*="background:linear-gradient"] div[style*="font-size:15px"] {
+  font-size: 18px !important;
+  font-weight: 900 !important;
+}
 
 </style>
 
@@ -780,8 +886,25 @@ const getUserFolderColor = () => {
   const profile = userProfiles[currentUser?.username];
   return profile?.folder_color || '#1E90FF';
 };
-
-// Update user's folder color
+// Update all existing folders created by current user with new color
+const updateExistingFoldersColor = async (newColor) => {
+  try {
+    // Get all folders created by current user
+    const userFolders = folders.filter(f => f.createdBy === currentUser.username);
+    
+    // Update each folder's creatorColor
+    for (const folder of userFolders) {
+      folder.creatorColor = newColor;
+      // Update in Supabase
+      const r = await sbFetch(`folders?id=eq.${folder.id}`, 'PATCH', { creator_color: newColor });
+      if (!r.ok) console.error(`Failed to update folder ${folder.id}`);
+    }
+    
+    // Refresh folders array
+    await loadFoldersFromCloud();
+    renderFolderView();
+  } catch(e) { console.error('Error updating existing folders:', e); }
+};
 const updateUserFolderColor = async (colorValue) => {
   // Check if color is taken by another user
   const colorTaken = AVAILABLE_COLORS.find(c => c.value === colorValue && c.takenBy && c.takenBy !== currentUser.username);
@@ -793,13 +916,19 @@ const updateUserFolderColor = async (colorValue) => {
   const success = await upsertUserProfile(currentUser.username, { folder_color: colorValue });
   if (success) {
     showMessage(`✅ Folder color updated to ${AVAILABLE_COLORS.find(c => c.value === colorValue)?.name}!`, 'success');
-    await loadTakenColors(); // Refresh taken colors
-    renderSettings(); // Refresh settings page
-    renderFolderView(); // Refresh folders with new color
+    
+    // Update ALL existing folders created by this user
+    await updateExistingFoldersColor(colorValue);
+    
+    await loadTakenColors();
+    renderSettings();
+    renderFolderView();
     return true;
   }
   return false;
 };
+  
+ 
 // ============ STATE ============
 let currentUser = null, currentView = 'home', currentFolder = null, menuOpen = false;
 let forgotPhoneNumber = null, folders = [], calendarEvents = [], recipes = [];
@@ -1751,8 +1880,8 @@ const renderFolderView = () => {
         <div><div class="sh-t">📁 Folders</div><div class="sh-s">${visibleFolders.length} folder${visibleFolders.length !== 1 ? 's' : ''}</div></div>
         <div style="display:flex;gap:6px;align-items:center">
           <div class="view-toggle">
-            <button class="view-btn ${folderViewMode==='grid'?'active':''}" onclick="toggleFolderView('grid')">▦</button>
-            <button class="view-btn ${folderViewMode==='list'?'active':''}" onclick="toggleFolderView('list')">☰</button>
+            <button class="view-btn ${folderViewMode === 'grid' ? 'active' : ''}" onclick="toggleFolderView('grid')">▦</button>
+            <button class="view-btn ${folderViewMode === 'list' ? 'active' : ''}" onclick="toggleFolderView('list')">☰</button>
           </div>
           <button class="btn btn-p btn-sm" onclick="createFolderInDrive()">+ New</button>
         </div>
@@ -1766,43 +1895,55 @@ const renderFolderView = () => {
         </div>
       ` : folderViewMode === 'grid' ? `
         <div class="folder-grid">
-          ${visibleFolders.map(folder => `
-           <div class="folder-card" onclick="openFolderActions(${folder.id})" style="border-top: 3px solid ${folder.creatorColor || '#1E90FF'}">
-  <div class="folder-icon" style="color:${folder.creatorColor || '#1E90FF'}">📁</div>
-  <div class="folder-name">${escapeHtml(folder.name)}</div>
-  <div style="font-size:9px;color:var(--tx3);margin-top:3px">
-    <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${folder.creatorColor || '#1E90FF'};margin-right:4px"></span>
-    ${escapeHtml(folder.createdBy)} · ${new Date(folder.createdAt).toLocaleDateString()}
-  </div>
-  ${folder.driveLink ? '<div style="font-size:9px;color:var(--a1);margin-top:4px;font-weight:700">☁️ Connected</div>' : '<div style="font-size:9px;color:var(--tx3);margin-top:4px">⚠️ No link</div>'}
-  <div class="folder-actions" onclick="event.stopPropagation()">
-    <button class="btn btn-sm btn-gh" onclick="showEditLinkModal(${folder.id},'${escapeHtml(folder.name)}')">🔗 Link</button>
-    ${canDeleteFolder(folder) ? `<button class="btn btn-sm btn-d" onclick="deleteFolder(${folder.id})">🗑️</button>` : ''}
-  </div>
-</div>
-          `).join('')}
+          ${visibleFolders.map(folder => {
+            const creatorColor = folder.creatorColor || '#1E90FF';
+            const hexToRgb = (hex) => {
+              const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+              return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '30, 144, 255';
+            };
+            const creatorRgb = hexToRgb(creatorColor);
+            return `
+              <div class="folder-card" onclick="openFolderActions(${folder.id})" style="--folder-color: ${creatorColor}; --folder-color-rgb: ${creatorRgb}; border-top-color: ${creatorColor}">
+                <div class="folder-icon" style="color:${creatorColor}">📁</div>
+                <div class="folder-name">${escapeHtml(folder.name)}</div>
+                <div style="font-size:9px;color:var(--tx3);margin-top:3px">
+                  <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${creatorColor};margin-right:4px"></span>
+                  ${escapeHtml(folder.createdBy)} · ${new Date(folder.createdAt).toLocaleDateString()}
+                </div>
+                ${folder.driveLink ? '<div style="font-size:9px;color:var(--a1);margin-top:4px;font-weight:700">☁️ Connected</div>' : '<div style="font-size:9px;color:var(--tx3);margin-top:4px">⚠️ No link</div>'}
+                <div class="folder-actions" onclick="event.stopPropagation()">
+                  <button class="btn btn-sm btn-gh" onclick="showEditLinkModal(${folder.id},'${escapeHtml(folder.name)}')">🔗 Link</button>
+                  ${canDeleteFolder(folder) ? `<button class="btn btn-sm btn-d" onclick="deleteFolder(${folder.id})">🗑️</button>` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
         </div>
       ` : `
         <div class="folder-list">
-          ${visibleFolders.map(folder => `
-            <div class="folder-list-item" onclick="openFolderActions(${folder.id})" style="border-left: 3px solid ${folder.creatorColor || '#1E90FF'}">
-  <div class="folder-list-icon" style="color:${folder.creatorColor || '#1E90FF'}">📁</div>
-  <div class="folder-list-info">
-    <div class="folder-list-name">${escapeHtml(folder.name)}</div>
-    <div class="folder-list-meta">
-      <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${folder.creatorColor || '#1E90FF'};margin-right:4px"></span>
-      ${escapeHtml(folder.createdBy)} · ${new Date(folder.createdAt).toLocaleDateString()}
-    </div>
-  </div>
-  <div class="folder-list-status ${folder.driveLink ? 'connected' : 'missing'}">${folder.driveLink ? '☁️ Connected' : '⚠️ No link'}</div>
-  <div class="folder-list-actions" onclick="event.stopPropagation()">
-    <button class="btn btn-sm btn-gh" onclick="showEditLinkModal(${folder.id},'${escapeHtml(folder.name)}')">🔗</button>
-    ${canDeleteFolder(folder) ? `<button class="btn btn-sm btn-d" onclick="deleteFolder(${folder.id})">🗑️</button>` : ''}
-  </div>
-</div>
-          `).join('')}
+          ${visibleFolders.map(folder => {
+            const creatorColor = folder.creatorColor || '#1E90FF';
+            return `
+              <div class="folder-list-item" onclick="openFolderActions(${folder.id})" style="border-left: 4px solid ${creatorColor}">
+                <div class="folder-list-icon" style="color:${creatorColor}">📁</div>
+                <div class="folder-list-info">
+                  <div class="folder-list-name">${escapeHtml(folder.name)}</div>
+                  <div class="folder-list-meta">
+                    <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${creatorColor};margin-right:4px"></span>
+                    ${escapeHtml(folder.createdBy)} · ${new Date(folder.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+                <div class="folder-list-status ${folder.driveLink ? 'connected' : 'missing'}">${folder.driveLink ? '☁️ Connected' : '⚠️ No link'}</div>
+                <div class="folder-list-actions" onclick="event.stopPropagation()">
+                  <button class="btn btn-sm btn-gh" onclick="showEditLinkModal(${folder.id},'${escapeHtml(folder.name)}')">🔗</button>
+                  ${canDeleteFolder(folder) ? `<button class="btn btn-sm btn-d" onclick="deleteFolder(${folder.id})">🗑️</button>` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
         </div>
-      `}`;
+      `}
+    `;
     return;
   }
 
@@ -1819,8 +1960,9 @@ const renderFolderView = () => {
       <div class="sh-t" style="margin-bottom:4px">${escapeHtml(folder.name)}</div>
       <div style="font-size:11px;color:var(--tx3);margin-bottom:18px">Created by ${escapeHtml(folder.createdBy)}</div>
       <button class="btn btn-p btn-lg btn-w" onclick="openCloudFolder('${escapeHtml(folder.driveLink || '')}','${escapeHtml(folder.name)}')">☁️ Open in Google Drive</button>
-      ${!folder.driveLink ? `<div class="al al-i" style="margin-top:10px">⚠️  No Google Drive link set.</div>` : ''}
-    </div>`;
+      ${!folder.driveLink ? `<div class="al al-i" style="margin-top:10px">⚠️ No Google Drive link set.</div>` : ''}
+    </div>
+  `;
 };
 
 // ============ RENDER: CALENDAR ============
@@ -2290,7 +2432,8 @@ const verifySecurityAnswer = async () => {
 // ============ PULL TO REFRESH ============
 let touchStartY = 0;
 let isRefreshing = false;
-let refreshThreshold = 80;
+let refreshThreshold = 60;
+let isDraggingFromTop = false;
 
 const addPullToRefresh = () => {
   const scr = document.querySelector('.scr');
@@ -2307,45 +2450,56 @@ const addPullToRefresh = () => {
   let pulling = false;
   
   scr.addEventListener('touchstart', (e) => {
+    // Check if we're at the very top of the page
     if (scr.scrollTop === 0 && !isRefreshing) {
       startY = e.touches[0].clientY;
+      // Only enable if touch starts near the top edge (first 50px of screen)
+      isDraggingFromTop = startY < 80;
       pulling = true;
     }
   });
   
   scr.addEventListener('touchmove', (e) => {
-    if (pulling && scr.scrollTop === 0 && !isRefreshing) {
+    if (pulling && scr.scrollTop === 0 && !isRefreshing && isDraggingFromTop) {
       const currentY = e.touches[0].clientY;
       const distance = currentY - startY;
       
-      if (distance > 0) {
+      // Only trigger if pulling down
+      if (distance > 5) {
         e.preventDefault();
-        if (distance > refreshThreshold) {
+        
+        const pullDistance = Math.min(distance, refreshThreshold);
+        
+        if (pullDistance > refreshThreshold - 10) {
           refreshIndicator.innerHTML = '<div class="refresh-spinner"></div><span>Release to refresh...</span>';
-          refreshIndicator.style.top = `${Math.min(distance, refreshThreshold)}px`;
         } else {
           refreshIndicator.innerHTML = '<div class="refresh-spinner"></div><span>Pull to refresh...</span>';
-          refreshIndicator.style.top = `${Math.min(distance, refreshThreshold)}px`;
         }
+        
+        refreshIndicator.style.top = `${pullDistance}px`;
       }
     }
   });
   
   scr.addEventListener('touchend', async (e) => {
-    if (pulling && scr.scrollTop === 0 && !isRefreshing) {
+    if (pulling && scr.scrollTop === 0 && !isRefreshing && isDraggingFromTop) {
       const endY = e.changedTouches[0].clientY;
       const distance = endY - startY;
       
-      if (distance > refreshThreshold) {
+      if (distance >= refreshThreshold - 10) {
         await performRefresh();
       }
       
       refreshIndicator.style.top = '-50px';
       pulling = false;
+      isDraggingFromTop = false;
       startY = 0;
     }
+    pulling = false;
+    isDraggingFromTop = false;
   });
 };
+
 const performRefresh = async () => {
   if (isRefreshing) return;
   isRefreshing = true;
@@ -2387,8 +2541,9 @@ const performRefresh = async () => {
       refreshIndicator.innerHTML = '<div class="refresh-spinner"></div><span>Pull to refresh...</span>';
     }
     isRefreshing = false;
-  }, 500);
+  }, 800);
 };
+
 // Call this after renderApp or in window.onload
 const initPullToRefresh = () => {
   setTimeout(addPullToRefresh, 500);
