@@ -536,17 +536,111 @@ textarea { resize:vertical; min-height:60px; }
 .udb-day { font-size:14px; font-weight:900; line-height:1; }
 .udb-mon { font-size:7px; font-weight:900; text-transform:uppercase; letter-spacing:.5px; }
 
-/* RECIPE CARDS */
-.recipe-card { background:var(--s1); border:1px solid var(--bd); border-radius:12px; overflow:hidden; margin-bottom:8px; box-shadow:var(--shadow-sm); transition:all .2s; }
-.recipe-card:active { transform:scale(.98); }
-.recipe-img { width:100%; height:110px; object-fit:cover; display:block; }
-.recipe-img-placeholder { width:100%; height:110px; background:linear-gradient(135deg,rgba(255,159,90,.15),rgba(255,159,90,.05)); display:flex; align-items:center; justify-content:center; font-size:36px; }
-.recipe-body { padding:8px 10px; }
-.recipe-title { font-size:13px; font-weight:900; margin-bottom:4px; letter-spacing:-.2px; }
-.recipe-meta { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:5px; }
-.recipe-badge { display:inline-flex; align-items:center; gap:2px; padding:2px 6px; border-radius:6px; font-size:8.5px; font-weight:700; background:rgba(255,159,90,.12); color:var(--recipe); }
-.recipe-desc { font-size:10.5px; color:var(--tx2); line-height:1.4; }
+/* RECIPE CARDS - Updated with lightbox and list view */
+.recipe-card {
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  padding: 0;
+  box-shadow: var(--shadow-sm);
+  transition: all .2s;
+  cursor: pointer;
+}
 
+.recipe-card:active {
+  transform: scale(0.98);
+}
+
+.recipe-body {
+  padding: 12px;
+}
+
+.recipe-title {
+  font-size: 13px;
+  font-weight: 900;
+  margin-bottom: 4px;
+  letter-spacing: -.2px;
+}
+
+.recipe-meta {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-bottom: 5px;
+}
+
+.recipe-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 8.5px;
+  font-weight: 700;
+  background: rgba(255, 159, 90, .12);
+  color: var(--recipe);
+}
+
+.recipe-desc {
+  font-size: 10.5px;
+  color: var(--tx2);
+  line-height: 1.4;
+}
+
+.recipe-img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  display: block;
+}
+
+.recipe-img-placeholder {
+  width: 100%;
+  height: 110px;
+  background: linear-gradient(135deg, rgba(255, 159, 90, .15), rgba(255, 159, 90, .05));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+}
+
+/* Lightbox overlay */
+.lightbox-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+/* Thumbnail styles for recipe detail */
+.recipe-thumbnail {
+  width: 80px;
+  height: 80px;
+  border-radius: 10px;
+  object-fit: cover;
+  cursor: pointer;
+  border: 1px solid var(--bd);
+  transition: transform 0.1s;
+}
+
+.recipe-thumbnail:active {
+  transform: scale(0.95);
+}
+
+.thumbnail-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
 /* PROFILE PIC */
 .profile-pic-wrap { position:relative; width:64px; height:64px; margin:0 auto 10px; cursor:pointer; }
 .profile-pic-wrap .pav { width:64px; height:64px; border-radius:16px; background:linear-gradient(135deg,var(--a1),var(--a3)); display:flex; align-items:center; justify-content:center; font-size:24px; color:var(--btn-text); overflow:hidden; font-weight:900; }
@@ -1742,6 +1836,52 @@ const compressImage = (file, maxPx = 1200, quality = 0.78) => new Promise((resol
   reader.readAsDataURL(file);
 });
 
+// ============ LIGHTBOX FOR FULL-SIZE IMAGES ============
+let currentLightboxImages = [];
+let currentLightboxIndex = 0;
+
+const showLightbox = (images, startIndex) => {
+  if (!images || images.length === 0) return;
+  currentLightboxImages = images;
+  currentLightboxIndex = startIndex;
+  
+  const overlay = document.createElement('div');
+  overlay.className = 'lightbox-overlay';
+  overlay.id = 'lightboxOverlay';
+  overlay.innerHTML = `
+    <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;">
+      <button onclick="closeLightbox()" style="position:absolute;top:20px;right:20px;background:rgba(0,0,0,0.6);border:none;color:white;font-size:28px;width:44px;height:44px;border-radius:30px;cursor:pointer;">✕</button>
+      <img id="lightboxImg" src="${images[startIndex]}" style="max-width:90vw;max-height:80vh;object-fit:contain;border-radius:12px;">
+      <div style="color:white;margin-top:16px;background:rgba(0,0,0,0.6);padding:8px 16px;border-radius:40px;">${startIndex+1} / ${images.length}</div>
+      <div style="display:flex;gap:20px;margin-top:20px;">
+        <button onclick="lightboxPrev()" style="background:rgba(0,0,0,0.6);border:none;color:white;padding:10px 20px;border-radius:30px;cursor:pointer;">◀ Prev</button>
+        <button onclick="lightboxNext()" style="background:rgba(0,0,0,0.6);border:none;color:white;padding:10px 20px;border-radius:30px;cursor:pointer;">Next ▶</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+};
+
+const closeLightbox = () => {
+  document.getElementById('lightboxOverlay')?.remove();
+};
+
+const lightboxPrev = () => {
+  currentLightboxIndex = (currentLightboxIndex - 1 + currentLightboxImages.length) % currentLightboxImages.length;
+  const img = document.getElementById('lightboxImg');
+  if (img) img.src = currentLightboxImages[currentLightboxIndex];
+  const caption = document.querySelector('#lightboxOverlay div div');
+  if (caption) caption.innerText = `${currentLightboxIndex+1} / ${currentLightboxImages.length}`;
+};
+
+const lightboxNext = () => {
+  currentLightboxIndex = (currentLightboxIndex + 1) % currentLightboxImages.length;
+  const img = document.getElementById('lightboxImg');
+  if (img) img.src = currentLightboxImages[currentLightboxIndex];
+  const caption = document.querySelector('#lightboxOverlay div div');
+  if (caption) caption.innerText = `${currentLightboxIndex+1} / ${currentLightboxImages.length}`;
+};
+
 // ============ RECIPE LOGIC ============
 const canEditRecipe = (rec) => currentUser.role === 'admin' || rec.createdBy === currentUser.username;
 let pendingRecipeImageData = null;
@@ -2442,13 +2582,24 @@ if (ev.eventType === 'birthday' && ev.yearOfBirth) {
   `;
 };
 
-// ============ RENDER: RECIPES ============
 const renderRecipes = () => {
-  const container = document.getElementById('recipesContainer'); if (!container) return;
-  if (currentRecipe) { renderRecipeDetail(currentRecipe); return; }
+  const container = document.getElementById('recipesContainer'); 
+  if (!container) return;
+  
+  if (currentRecipe) { 
+    renderRecipeDetail(currentRecipe); 
+    return; 
+  }
+  
+  // Filter and SORT ALPHABETICALLY
   let filteredRecipes = recipeFilter === 'all' ? recipes : recipes.filter(r => r.category === recipeFilter);
+  filteredRecipes.sort((a, b) => a.title.localeCompare(b.title));
+  
   container.innerHTML = `
-    <div class="sh"><div><div class="sh-t">🍳 Recipes</div><div class="sh-s">Family recipes shared with love</div></div><button class="btn btn-recipe btn-sm" onclick="openAddRecipeModal()">+ Add</button></div>
+    <div class="sh">
+      <div><div class="sh-t">🍳 Recipes</div><div class="sh-s">Family recipes shared with love</div></div>
+      <button class="btn btn-recipe btn-sm" onclick="openAddRecipeModal()">+ Add</button>
+    </div>
     <div class="pill-tabs">
       <button class="pill-tab ${recipeFilter==='all'?'active':''}" onclick="setRecipeFilter('all')">All</button>
       ${Object.entries(RECIPE_CATEGORIES).map(([k,v]) => `<button class="pill-tab ${recipeFilter===k?'active':''}" onclick="setRecipeFilter('${k}')">${v}</button>`).join('')}
@@ -2459,51 +2610,63 @@ const renderRecipes = () => {
         <div class="empty-text">No recipes yet</div>
         <div class="empty-sub">Be the first to share a family recipe!</div>
         <button class="btn btn-recipe" style="margin-top:14px" onclick="openAddRecipeModal()">+ Add First Recipe</button>
-      </div>` : filteredRecipes.map(rec => `
-      <div class="recipe-card" onclick="viewRecipeDetail(${rec.id})">
-        ${rec.images_data && rec.images_data !== '[]' ? 
-  `<img class="recipe-img" src="${JSON.parse(rec.images_data)[0]}" alt="${escapeHtml(rec.title)}" onerror="this.style.display='none'">` : 
-  (rec.image_data ? `<img class="recipe-img" src="${rec.image_data}" alt="${escapeHtml(rec.title)}" onerror="this.style.display='none'">` : `<div class="recipe-img-placeholder">🍽️</div>`)
-}}
+      </div>
+    ` : 
+    filteredRecipes.map(rec => `
+      <div class="recipe-card" onclick="viewRecipeDetail(${rec.id})" style="cursor:pointer;">
         <div class="recipe-body">
           <div class="recipe-title">${escapeHtml(rec.title)}</div>
           <div class="recipe-meta">
             <span class="recipe-badge">${RECIPE_CATEGORIES[rec.category] || '🍴 Other'}</span>
-           ${rec.prep_time ? `<span class="recipe-badge">⏱️ ${escapeHtml(rec.prep_time)}</span>` : ''}
-${rec.servings ? `<span class="recipe-badge">👥 ${escapeHtml(rec.servings)}</span>` : ''}
+            ${rec.prep_time ? `<span class="recipe-badge">⏱️ ${escapeHtml(rec.prep_time)}</span>` : ''}
+            ${rec.servings ? `<span class="recipe-badge">👥 ${escapeHtml(rec.servings)}</span>` : ''}
           </div>
-          ${rec.description ? `<div class="recipe-desc">${escapeHtml(rec.description)}</div>` : ''}
+          ${rec.description ? `<div class="recipe-desc">${escapeHtml(rec.description.substring(0, 100))}${rec.description.length > 100 ? '...' : ''}</div>` : ''}
           <div style="font-size:10px;color:var(--tx3);margin-top:6px;font-weight:600">👨‍🍳 ${escapeHtml(rec.createdBy)} · ${new Date(rec.createdAt).toLocaleDateString()}</div>
         </div>
-      </div>`).join('')}`;
-};
-
-const renderRecipeDetail = (id) => {
-  const container = document.getElementById('recipesContainer'); if (!container) return;
-  const rec = recipes.find(r => r.id === id);
-  if (!rec) { currentRecipe = null; renderRecipes(); return; }
-  const canEdit = canEditRecipe(rec);
-  const ingredientsList = rec.ingredients.split('\n').filter(l => l.trim()).map(l => `<li style="padding:4px 0;border-bottom:1px solid var(--bd);font-size:12px;color:var(--tx2)">${escapeHtml(l.trim())}</li>`).join('');
-  const instructionsList = rec.instructions.split('\n').filter(l => l.trim()).map((l, i) => `<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd)"><div style="background:var(--a1);color:var(--btn-text);border-radius:7px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex-shrink:0;margin-top:1px">${i+1}</div><div style="font-size:12px;color:var(--tx2);line-height:1.55">${escapeHtml(l.trim())}</div></div>`).join('');
-  container.innerHTML = `
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap">
-      <span style="color:var(--a1);cursor:pointer;font-weight:700;font-size:13px" onclick="backToRecipeList()">🍳  Recipes</span>
-      <span style="color:var(--tx3)">›</span>
-      <span style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">${escapeHtml(rec.title)}</span>
-    </div>
-    ${rec.images_data && rec.images_data !== '[]' ? `
-  <div style="display:flex;overflow-x:auto;gap:8px;margin-bottom:10px;padding-bottom:4px">
-    ${JSON.parse(rec.images_data).map(img => `
-      <div style="flex-shrink:0;width:120px;height:120px;border-radius:12px;overflow:hidden">
-        <img src="${img}" style="width:100%;height:100%;object-fit:cover">
       </div>
     `).join('')}
-  </div>
-` : (rec.image_data ? `
-  <div style="border-radius:14px;overflow:hidden;margin-bottom:10px;height:180px">
-    <img src="${rec.image_data}" style="width:100%;height:100%;object-fit:cover" alt="${escapeHtml(rec.title)}">
-  </div>
-` : '')}
+  `;
+};
+const renderRecipeDetail = (id) => {
+  const container = document.getElementById('recipesContainer'); 
+  if (!container) return;
+  
+  const rec = recipes.find(r => r.id === id);
+  if (!rec) { currentRecipe = null; renderRecipes(); return; }
+  
+  const canEdit = canEditRecipe(rec);
+  
+  // Get all images
+  let imagesArray = [];
+  if (rec.images_data && rec.images_data !== '[]') {
+    imagesArray = JSON.parse(rec.images_data);
+  } else if (rec.image_data) {
+    imagesArray = [rec.image_data];
+  }
+  
+  const ingredientsList = rec.ingredients.split('\n').filter(l => l.trim()).map(l => `<li style="padding:4px 0;border-bottom:1px solid var(--bd);font-size:12px;color:var(--tx2)">${escapeHtml(l.trim())}</li>`).join('');
+  const instructionsList = rec.instructions.split('\n').filter(l => l.trim()).map((l, i) => `<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd)"><div style="background:var(--a1);color:var(--btn-text);border-radius:7px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex-shrink:0;margin-top:1px">${i+1}</div><div style="font-size:12px;color:var(--tx2);line-height:1.55">${escapeHtml(l.trim())}</div></div>`).join('');
+  
+  container.innerHTML = `
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+      <span style="color:var(--a1);cursor:pointer;font-weight:700;font-size:13px" onclick="backToRecipeList()">← All Recipes</span>
+      <span style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">${escapeHtml(rec.title)}</span>
+    </div>
+    
+    ${imagesArray.length > 0 ? `
+      <div style="margin-bottom:12px;">
+        <div class="ctitle" style="margin-bottom:6px">📸 Recipe Photos (tap to enlarge)</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          ${imagesArray.map((img, idx) => `
+            <div style="width:80px;height:80px;border-radius:10px;overflow:hidden;cursor:pointer;border:1px solid var(--bd)" onclick="showLightbox(${JSON.stringify(imagesArray).replace(/"/g, '&quot;')}, ${idx})">
+              <img src="${img}" style="width:100%;height:100%;object-fit:cover">
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : '<div style="background:var(--bg3);border-radius:12px;padding:16px;text-align:center;margin-bottom:12px;color:var(--tx3)">📷 No photos added for this recipe</div>'}
+    
     <div class="card">
       <div style="font-size:17px;font-weight:900;margin-bottom:8px;letter-spacing:-.3px">${escapeHtml(rec.title)}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
@@ -2515,16 +2678,22 @@ const renderRecipeDetail = (id) => {
       <div style="font-size:10px;color:var(--tx3);font-weight:600">👨‍🍳 Shared by ${escapeHtml(rec.createdBy)} · ${new Date(rec.createdAt).toLocaleDateString()}</div>
       ${canEdit ? `<div style="display:flex;gap:6px;margin-top:10px"><button class="btn btn-sm btn-gh" onclick="openEditRecipeModal(${rec.id})">✏️ Edit</button><button class="btn btn-sm btn-d" onclick="confirmDeleteRecipe(${rec.id})">🗑️ Delete</button></div>` : ''}
     </div>
-    <div class="card">
-      <div class="ctitle">🛒 Ingredients</div>
-      <ul style="list-style:none;padding:0">${ingredientsList}</ul>
-    </div>
-    <div class="card">
-      <div class="ctitle">📋 Instructions</div>
-      ${instructionsList}
-    </div>`;
+    
+    ${rec.ingredients ? `
+      <div class="card">
+        <div class="ctitle">🛒 Ingredients</div>
+        <ul style="list-style:none;padding:0">${ingredientsList}</ul>
+      </div>
+    ` : ''}
+    
+    ${rec.instructions ? `
+      <div class="card">
+        <div class="ctitle">📋 Instructions</div>
+        ${instructionsList}
+      </div>
+    ` : ''}
+  `;
 };
-
 
 
 const setRecipeFilter = (f) => { recipeFilter = f; renderRecipes(); };
@@ -3396,7 +3565,10 @@ window.onload = async () => {
   showLogin();
 };
 
-
+window.showLightbox = showLightbox;
+window.closeLightbox = closeLightbox;
+window.lightboxPrev = lightboxPrev;
+window.lightboxNext = lightboxNext;
 
 
 
