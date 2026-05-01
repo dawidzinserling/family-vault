@@ -1677,7 +1677,7 @@ const openAddEventModal = (prefillDate) => {
       
       <!-- MEMORY WALK FIELDS (only these two) -->
       <div id="memoryWalkGroup" style="display:none">
-        <label style="font-size:11px; font-weight:600; color:var(--tx2); margin-bottom:2px; display:block; margin-top:6px">🕊️ Date of Passing</label>
+        <label style="font-size:11px; font-weight:600; color:var(--tx2); margin-bottom:2px; display:block; margin-top:6px">🕊️ Date of Memory</label>
         <input type="date" id="memDeathDate" placeholder="Date of Memory">
       </div>
       
@@ -1736,8 +1736,8 @@ const openEditEventModal = (id) => {
       </div>
       
       <div id="memoryWalkGroup" style="${ev.eventType === 'memory' ? 'display:block' : 'display:none'}">
-        <label style="font-size:11px; font-weight:600; color:var(--tx2); margin-bottom:2px; display:block; margin-top:6px">🕊️ Date of Passing</label>
-        <input type="date" id="memDeathDate" placeholder="Date of passing" value="${ev.eventDate}">
+        <label style="font-size:11px; font-weight:600; color:var(--tx2); margin-bottom:2px; display:block; margin-top:6px">🕊️ Date of Memory</label>
+        <input type="date" id="memDeathDate" placeholder="Date of memory" value="${ev.eventDate}">
       </div>
       
       <textarea id="evDesc" placeholder="Description (optional)" style="margin-bottom:8px">${escapeHtml(ev.description)}</textarea>
@@ -1786,7 +1786,7 @@ const openEditEventModal = (id) => {
   
   if (type === 'memory') {
     if (!memDeathDate) {
-      if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter date of passing for Memory Walk.</div>`;
+      if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter date of memory for Memory Walk.</div>`;
       return;
     }
     finalEventDate = memDeathDate;
@@ -1843,7 +1843,7 @@ const doEditEvent = async (id) => {
   if (!date) { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please select a date.</div>`; return; }
   
   if (type === 'memory' && !memDeathDate) {
-    if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter date of passing.</div>`; return;
+    if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter date of memory.</div>`; return;
   }
   
   if (msgEl) msgEl.innerHTML = `<div class="al al-i">Saving...</div>`;
