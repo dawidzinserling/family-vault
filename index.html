@@ -1230,66 +1230,136 @@ function showImageViewer(imageSrc, altText) {
   viewer = document.createElement('div'); 
   viewer.id = 'globalImageViewer'; 
   viewer.className = 'image-viewer';
-  viewer.innerHTML = `<div class="image-viewer-close">✕</div><img src="${imageSrc}" alt="${escapeHtml(altText)}"><div class="image-viewer-caption">${escapeHtml(altText)} - Pinch to zoom</div>`;
+  viewer.innerHTML = `<div class="image-viewer-close">✕</div>
+    <div class="image-viewer-container" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative;">
+      <img src="${imageSrc}" alt="${escapeHtml(altText)}" style="max-width:90%; max-height:80%; object-fit:contain; transition:transform 0.05s ease; transform-origin: center center;">
+    </div>
+    <div class="image-viewer-caption">${escapeHtml(altText)} - Pinch to zoom, drag to pan</div>`;
   document.body.appendChild(viewer);
   
+  const container = viewer.querySelector('.image-viewer-container');
   const img = viewer.querySelector('img');
-  let currentScale = 1;
+  let scale = 1;
+  let translateX = 0;
+  let translateY = 0;
   let initialDistance = 0;
+  let initialScale = 1;
+  let startX = 0, startY = 0;
+  let isPanning = false;
   
-  // Click to toggle 2x zoom
-  const toggleZoom = (e) => {
-    e.stopPropagation();
-    if (currentScale === 1) {
-      currentScale = 2;
-      img.style.transform = `scale(2)`;
-      img.style.cursor = 'zoom-out';
-    } else {
-      currentScale = 1;
-      img.style.transform = '';
-      img.style.cursor = 'zoom-in';
-    }
+  // Update transform
+  const updateTransform = () => {
+    img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
   };
   
-  img.addEventListener('click', toggleZoom);
-  viewer.querySelector('.image-viewer-close').addEventListener('click',()=>viewer.remove());
-  viewer.addEventListener('click',(e)=>{ if(e.target===viewer) viewer.remove(); });
+  // Reset view (double tap)
+  const resetView = () => {
+    scale = 1;
+    translateX = 0;
+    translateY = 0;
+    updateTransform();
+  };
   
-  // Pinch zoom - KEEPS the zoom level after pinch ends
+  // Close button
+  viewer.querySelector('.image-viewer-close').addEventListener('click', () => viewer.remove());
+  
+  // Click on background to close
+  viewer.addEventListener('click', (e) => { 
+    if (e.target === viewer) viewer.remove(); 
+  });
+  
+  // Double tap to reset
+  img.addEventListener('dblclick', (e) => {
+    e.stopPropagation();
+    resetView();
+  });
+  
+  // PINCH ZOOM (two fingers)
   img.addEventListener('touchstart', (e) => {
     if (e.touches.length === 2) {
       e.preventDefault();
-      initialDistance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      initialDistance = Math.hypot(dx, dy);
+      initialScale = scale;
+      isPanning = false;
+    } else if (e.touches.length === 1 && scale > 1) {
+      // Start panning (only when zoomed in)
+      isPanning = true;
+      startX = e.touches[0].clientX - translateX;
+      startY = e.touches[0].clientY - translateY;
     }
   });
   
   img.addEventListener('touchmove', (e) => {
     if (e.touches.length === 2 && initialDistance > 0) {
+      // Pinch to zoom
       e.preventDefault();
-      const currentDistance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      let newScale = currentScale * (currentDistance / initialDistance);
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const currentDistance = Math.hypot(dx, dy);
+      let newScale = initialScale * (currentDistance / initialDistance);
       newScale = Math.min(4, Math.max(0.5, newScale));
       
-      if (newScale !== currentScale) {
-        currentScale = newScale;
-        img.style.transform = `scale(${currentScale})`;
-        img.style.cursor = currentScale > 1 ? 'zoom-out' : 'zoom-in';
+      if (newScale !== scale) {
+        scale = newScale;
+        updateTransform();
       }
-      initialDistance = currentDistance;
+    } else if (e.touches.length === 1 && isPanning && scale > 1) {
+      // Pan/Drag when zoomed in
+      e.preventDefault();
+      const newTranslateX = e.touches[0].clientX - startX;
+      const newTranslateY = e.touches[0].clientY - startY;
+      
+      // Add boundaries to prevent dragging too far
+      const maxX = (img.clientWidth * (scale - 1)) / 2;
+      const maxY = (img.clientHeight * (scale - 1)) / 2;
+      translateX = Math.min(maxX, Math.max(-maxX, newTranslateX));
+      translateY = Math.min(maxY, Math.max(-maxY, newTranslateY));
+      updateTransform();
     }
   });
   
   img.addEventListener('touchend', (e) => {
-    initialDistance = 0;
-    // The zoom level stays! No resetting to 1.
+    if (e.touches.length < 2) {
+      initialDistance = 0;
+    }
+    if (e.touches.length === 0) {
+      isPanning = false;
+    }
   });
-}const formatDateFull = (dateStr) => {
+  
+  // Mouse support for desktop
+  let isMousePanning = false;
+  let lastMouseX = 0, lastMouseY = 0;
+  
+  img.addEventListener('mousedown', (e) => {
+    if (scale > 1) {
+      isMousePanning = true;
+      lastMouseX = e.clientX - translateX;
+      lastMouseY = e.clientY - translateY;
+      e.preventDefault();
+    }
+  });
+  
+  window.addEventListener('mousemove', (e) => {
+    if (isMousePanning && scale > 1) {
+      const newTranslateX = e.clientX - lastMouseX;
+      const newTranslateY = e.clientY - lastMouseY;
+      const maxX = (img.clientWidth * (scale - 1)) / 2;
+      const maxY = (img.clientHeight * (scale - 1)) / 2;
+      translateX = Math.min(maxX, Math.max(-maxX, newTranslateX));
+      translateY = Math.min(maxY, Math.max(-maxY, newTranslateY));
+      updateTransform();
+    }
+  });
+  
+  window.addEventListener('mouseup', () => {
+    isMousePanning = false;
+  });
+}
+
+const formatDateFull = (dateStr) => {
   const [y,m,d] = dateStr.split('-');
   const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
