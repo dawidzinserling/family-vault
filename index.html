@@ -930,10 +930,10 @@ input:focus, textarea:focus {
   flex: 1;
 }
 .image-viewer { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.95); z-index:2000; display:flex; align-items:center; justify-content:center; flex-direction:column; backdrop-filter:blur(10px); }
-.image-viewer img { max-width:90%; max-height:80%; object-fit:contain; cursor:zoom-out; }
-.image-viewer-close { position:absolute; top:20px; right:20px; background:rgba(255,255,255,0.2); border-radius:30px; width:40px; height:40px; display:flex; align-items:center; justify-content:center; font-size:24px; color:white; cursor:pointer; }
+.image-viewer img { max-width:90%; max-height:80%; object-fit:contain; cursor:zoom-in; transition:transform 0.2s ease; }
+.image-viewer img.zoomed { transform:scale(2); cursor:zoom-out; }
+.image-viewer-close { position:absolute; top:20px; right:20px; background:rgba(255,255,255,0.2); border-radius:30px; width:40px; height:40px; display:flex; align-items:center; justify-content:center; font-size:24px; color:white; cursor:pointer; z-index:2001; }
 .image-viewer-caption { color:white; margin-top:16px; font-size:14px; text-align:center; }
-
 .memory-card { border-left: 6px solid #8E44AD; background:linear-gradient(to right, rgba(142,68,173,0.05), var(--s1)); }
 .memory-badge { background:rgba(142,68,173,0.15); color:#8E44AD; border-radius:20px; padding:2px 8px; font-size:9px; font-weight:800; }
 .cal-day.memory-day { background:rgba(142,68,173,0.2); }
@@ -1230,14 +1230,66 @@ function showImageViewer(imageSrc, altText) {
   viewer = document.createElement('div'); 
   viewer.id = 'globalImageViewer'; 
   viewer.className = 'image-viewer';
-  viewer.innerHTML = `<div class="image-viewer-close">✕</div><img src="${imageSrc}" alt="${escapeHtml(altText)}"><div class="image-viewer-caption">${escapeHtml(altText)}</div>`;
+  viewer.innerHTML = `<div class="image-viewer-close">✕</div><img src="${imageSrc}" alt="${escapeHtml(altText)}"><div class="image-viewer-caption">${escapeHtml(altText)} - Pinch to zoom</div>`;
   document.body.appendChild(viewer);
+  
+  const img = viewer.querySelector('img');
+  let currentScale = 1;
+  let initialDistance = 0;
+  
+  // Click to toggle 2x zoom
+  const toggleZoom = (e) => {
+    e.stopPropagation();
+    if (currentScale === 1) {
+      currentScale = 2;
+      img.style.transform = `scale(2)`;
+      img.style.cursor = 'zoom-out';
+    } else {
+      currentScale = 1;
+      img.style.transform = '';
+      img.style.cursor = 'zoom-in';
+    }
+  };
+  
+  img.addEventListener('click', toggleZoom);
   viewer.querySelector('.image-viewer-close').addEventListener('click',()=>viewer.remove());
-  viewer.querySelector('img').addEventListener('click',()=>viewer.remove());
   viewer.addEventListener('click',(e)=>{ if(e.target===viewer) viewer.remove(); });
-}
-
-const formatDateFull = (dateStr) => {
+  
+  // Pinch zoom - KEEPS the zoom level after pinch ends
+  img.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      initialDistance = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+    }
+  });
+  
+  img.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 2 && initialDistance > 0) {
+      e.preventDefault();
+      const currentDistance = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      let newScale = currentScale * (currentDistance / initialDistance);
+      newScale = Math.min(4, Math.max(0.5, newScale));
+      
+      if (newScale !== currentScale) {
+        currentScale = newScale;
+        img.style.transform = `scale(${currentScale})`;
+        img.style.cursor = currentScale > 1 ? 'zoom-out' : 'zoom-in';
+      }
+      initialDistance = currentDistance;
+    }
+  });
+  
+  img.addEventListener('touchend', (e) => {
+    initialDistance = 0;
+    // The zoom level stays! No resetting to 1.
+  });
+}const formatDateFull = (dateStr) => {
   const [y,m,d] = dateStr.split('-');
   const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -1626,7 +1678,7 @@ const openAddEventModal = (prefillDate) => {
       <!-- MEMORY WALK FIELDS (only these two) -->
       <div id="memoryWalkGroup" style="display:none">
         <label style="font-size:11px; font-weight:600; color:var(--tx2); margin-bottom:2px; display:block; margin-top:6px">🕊️ Date of Passing</label>
-        <input type="date" id="memDeathDate" placeholder="Date of passing">
+        <input type="date" id="memDeathDate" placeholder="Date of Memory">
       </div>
       
       <textarea id="evDesc" placeholder="Description (optional)" style="margin-bottom:8px"></textarea>
@@ -2365,6 +2417,13 @@ const renderHome = () => {
     let age = eventDateObj.getFullYear() - birthYear;
     ageDisplay = `<div style="font-size:8px;color:var(--a1);margin-top:2px">🎂 Turning ${age}</div>`;
   }
+let memoryDisplay = '';
+if (ev.eventType === 'memory') {
+  const deathYear = ev.deathYear || parseInt(ev.eventDate.split('-')[0]);
+  const currentYear = new Date().getFullYear();
+  const yearsSince = currentYear - deathYear;
+  memoryDisplay = `<div style="font-size:8px;color:#8E44AD;margin-top:2px">🕊️ ${yearsSince} year${yearsSince !== 1 ? 's' : ''} ago</div>`;
+}
   return `<div class="upcoming-strip"><div class="udb"><div class="udb-day">${parseInt(d)}</div><div class="udb-mon">${shortMonth(parseInt(m)-1)}</div></div><div style="flex:1;min-width:0"><div style="font-weight:800;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${et.icon} ${escapeHtml(ev.title)}</div>${ageDisplay}<div style="font-size:10px;color:var(--tx3);margin-top:1px">${escapeHtml(ev.createdBy)}</div></div><span class="event-badge ${et.badgeClass}">${et.label}</span></div>`;
 }).join('')}
         <button class="btn btn-gh btn-w" style="margin-top:6px;font-size:11px" onclick="navigateTo('calendar')">View Full Calendar →</button>
@@ -2598,7 +2657,16 @@ if (ev.eventType === 'birthday' && ev.yearOfBirth) {
   }
 }
       return `<div class="event-card"><div class="event-icon ${et.iconClass}">${et.icon}</div><div style="flex:1;min-width:0"><div class="event-title">${escapeHtml(ev.title)}</div>
-${ev.eventType === 'memory' && ev.yearOfBirth && ev.deathYear ? `<div style="font-size:9px;color:#8E44AD;margin-top:2px">📅 Lived ${ev.deathYear - ev.yearOfBirth} years</div>` : ''}<div style="margin-top:2px"><span class="event-badge ${et.badgeClass}">${et.label}</span></div><div class="event-date-label" style="margin-top:4px">📅 ${formatDateFull(ev.eventDate)}</div>${ageDisplay}${ev.description ? `<div class="event-desc">${escapeHtml(ev.description)}</div>` : ''}<div class="event-date-label" style="margin-top:4px">👤 ${escapeHtml(ev.createdBy)}</div>${canEdit ? `<div class="event-actions"><button class="btn btn-sm btn-gh" onclick="openEditEventModal(${ev.id})">✏️ Edit</button><button class="btn btn-sm btn-d" onclick="confirmDeleteEvent(${ev.id})">🗑️ Delete</button></div>` : ''}</div></div>`;
+${ev.eventType === 'memory' ? (() => {
+  const deathYear = ev.deathYear || parseInt(ev.eventDate.split('-')[0]);
+  const currentYear = new Date().getFullYear();
+  const yearsSince = currentYear - deathYear;
+  const livedYears = ev.yearOfBirth ? (deathYear - ev.yearOfBirth) : null;
+  return `<div style="font-size:9px;color:#8E44AD;margin-top:2px">
+    🕊️ Passed ${yearsSince} year${yearsSince !== 1 ? 's' : ''} ago
+    ${livedYears ? ` · Lived ${livedYears} years` : ''}
+  </div>`;
+})() : ''}<div style="margin-top:2px"><span class="event-badge ${et.badgeClass}">${et.label}</span></div><div class="event-date-label" style="margin-top:4px">📅 ${formatDateFull(ev.eventDate)}</div>${ageDisplay}${ev.description ? `<div class="event-desc">${escapeHtml(ev.description)}</div>` : ''}<div class="event-date-label" style="margin-top:4px">👤 ${escapeHtml(ev.createdBy)}</div>${canEdit ? `<div class="event-actions"><button class="btn btn-sm btn-gh" onclick="openEditEventModal(${ev.id})">✏️ Edit</button><button class="btn btn-sm btn-d" onclick="confirmDeleteEvent(${ev.id})">🗑️ Delete</button></div>` : ''}</div></div>`;
     }).join('')}
   `;
 };
@@ -2609,7 +2677,7 @@ const renderRecipes = () => {
   if (currentRecipe) { renderRecipeDetail(currentRecipe); return; }
   let filteredRecipes = recipeFilter === 'all' ? recipes : recipes.filter(r => r.category === recipeFilter);
   container.innerHTML = `
-    <div class="sh"><div><div class="sh-t">🍳 Recipes</div><div class="sh-s">Family recipes shared with love</div></div><button class="btn btn-recipe btn-sm" onclick="openAddRecipeModal()">+ Add</button></div>
+    <div class="sh"><div><div class="sh-t">🍳 Recipes</div><div class="sh-s">${filteredRecipes.length} recipe${filteredRecipes.length !== 1 ? 's' : ''}</div></div><button class="btn btn-recipe btn-sm" onclick="openAddRecipeModal()">+ Add</button></div>
     <div class="pill-tabs">
       <button class="pill-tab ${recipeFilter==='all'?'active':''}" onclick="setRecipeFilter('all')">All</button>
       ${Object.entries(RECIPE_CATEGORIES).map(([k,v]) => `<button class="pill-tab ${recipeFilter===k?'active':''}" onclick="setRecipeFilter('${k}')">${v}</button>`).join('')}
@@ -2620,23 +2688,21 @@ const renderRecipes = () => {
         <div class="empty-text">No recipes yet</div>
         <div class="empty-sub">Be the first to share a family recipe!</div>
         <button class="btn btn-recipe" style="margin-top:14px" onclick="openAddRecipeModal()">+ Add First Recipe</button>
-      </div>` : filteredRecipes.map(rec => `
-      <div class="recipe-card" onclick="viewRecipeDetail(${rec.id})">
-        ${rec.images_data && rec.images_data !== '[]' ? 
-  `<img class="recipe-img" src="${JSON.parse(rec.images_data)[0]}" alt="${escapeHtml(rec.title)}" onerror="this.style.display='none'">` : 
-  (rec.image_data ? `<img class="recipe-img" src="${rec.image_data}" alt="${escapeHtml(rec.title)}" onerror="this.style.display='none'">` : `<div class="recipe-img-placeholder">🍽️</div>`)
-}}
-        <div class="recipe-body">
-          <div class="recipe-title">${escapeHtml(rec.title)}</div>
-          <div class="recipe-meta">
-            <span class="recipe-badge">${RECIPE_CATEGORIES[rec.category] || '🍴 Other'}</span>
-           ${rec.prep_time ? `<span class="recipe-badge">⏱️ ${escapeHtml(rec.prep_time)}</span>` : ''}
-${rec.servings ? `<span class="recipe-badge">👥 ${escapeHtml(rec.servings)}</span>` : ''}
+      </div>` : `
+      <div class="folder-list" style="gap:6px">
+        ${filteredRecipes.map(rec => `
+          <div class="folder-list-item" onclick="viewRecipeDetail(${rec.id})" style="border-left: 4px solid var(--recipe); padding: 10px 12px; cursor:pointer">
+            <div class="folder-list-icon" style="font-size:22px">🍳</div>
+            <div class="folder-list-info">
+              <div class="folder-list-name" style="font-size:14px; font-weight:600">${escapeHtml(rec.title)}</div>
+              <div class="folder-list-meta" style="font-size:10px">${RECIPE_CATEGORIES[rec.category] || 'Other'} · by ${escapeHtml(rec.createdBy)}</div>
+            </div>
+            <div class="folder-list-status" style="font-size:10px">📄</div>
           </div>
-          ${rec.description ? `<div class="recipe-desc">${escapeHtml(rec.description)}</div>` : ''}
-          <div style="font-size:10px;color:var(--tx3);margin-top:6px;font-weight:600">👨‍🍳 ${escapeHtml(rec.createdBy)} · ${new Date(rec.createdAt).toLocaleDateString()}</div>
-        </div>
-      </div>`).join('')}`;
+        `).join('')}
+      </div>
+    `}
+  `;
 };
 
 const renderRecipeDetail = (id) => {
