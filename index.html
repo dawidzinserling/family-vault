@@ -500,7 +500,7 @@ textarea { resize:vertical; min-height:60px; }
 .cal-dot-row { display:flex; gap:2px; margin-top:2px; height:3px; align-items:center; justify-content:center; }
 .cal-dot { width:3px; height:3px; border-radius:50%; flex-shrink:0; }
 .dot-birthday { background:#FF6B9D; } .dot-anniversary { background:#FFB347; }
-.dot-event { background:var(--a1); } .dot-holiday { background:#A78BFA; } .dot-reminder { background:#6EE7B7; }.dot-memory { background:#8E44AD; }
+.dot-event { background:var(--a1); } .dot-holiday { background:#A78BFA; } .dot-reminder { background:#6EE7B7; }
 .event-badge { display:inline-flex; align-items:center; gap:2px; padding:2px 6px; border-radius:20px; font-size:8.5px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; }
 .badge-birthday { background:rgba(255,107,157,.15); color:#FF6B9D; }
 .badge-anniversary { background:rgba(255,179,71,.15); color:#D4943A; }
@@ -929,15 +929,6 @@ input:focus, textarea:focus {
 .modal-buttons button {
   flex: 1;
 }
-.image-viewer { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.95); z-index:2000; display:flex; align-items:center; justify-content:center; flex-direction:column; backdrop-filter:blur(10px); }
-.image-viewer img { max-width:90%; max-height:80%; object-fit:contain; cursor:zoom-in; transition:transform 0.2s ease; }
-.image-viewer img.zoomed { transform:scale(2); cursor:zoom-out; }
-.image-viewer-close { position:absolute; top:20px; right:20px; background:rgba(255,255,255,0.2); border-radius:30px; width:40px; height:40px; display:flex; align-items:center; justify-content:center; font-size:24px; color:white; cursor:pointer; z-index:2001; }
-.image-viewer-caption { color:white; margin-top:16px; font-size:14px; text-align:center; }
-.memory-card { border-left: 6px solid #8E44AD; background:linear-gradient(to right, rgba(142,68,173,0.05), var(--s1)); }
-.memory-badge { background:rgba(142,68,173,0.15); color:#8E44AD; border-radius:20px; padding:2px 8px; font-size:9px; font-weight:800; }
-.cal-day.memory-day { background:rgba(142,68,173,0.2); }
-
 </style>
 
 </head>
@@ -962,8 +953,8 @@ const EVENT_TYPES = {
   event:       { label:'Event',       icon:'🎉', dotClass:'dot-event',       badgeClass:'badge-event',       iconClass:'ei-event'       },
   holiday:     { label:'Holiday',     icon:'🌟', dotClass:'dot-holiday',     badgeClass:'badge-holiday',     iconClass:'ei-holiday'     },
   reminder:    { label:'Reminder',    icon:'📌', dotClass:'dot-reminder',    badgeClass:'badge-reminder',    iconClass:'ei-reminder'    },
-  memory:      { label:'Memory Walk', icon:'🕊️', dotClass:'dot-memory',      badgeClass:'badge-memory',      iconClass:'ei-memory'      }  // ADD THIS LINE
 };
+
 // ============ FOLDER COLORS ============
 const AVAILABLE_COLORS = [
   { name: 'Red', value: '#E53935', emoji: '🔴', takenBy: null },
@@ -1222,143 +1213,6 @@ const formatDate = (dateStr) => {
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
 };
-
-// ============ IMAGE ZOOM FUNCTION ============
-function showImageViewer(imageSrc, altText) {
-  let viewer = document.getElementById('globalImageViewer');
-  if(viewer) viewer.remove();
-  viewer = document.createElement('div'); 
-  viewer.id = 'globalImageViewer'; 
-  viewer.className = 'image-viewer';
-  viewer.innerHTML = `<div class="image-viewer-close">✕</div>
-    <div class="image-viewer-container" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative;">
-      <img src="${imageSrc}" alt="${escapeHtml(altText)}" style="max-width:90%; max-height:80%; object-fit:contain; transition:transform 0.05s ease; transform-origin: center center;">
-    </div>
-    <div class="image-viewer-caption">${escapeHtml(altText)} - Pinch to zoom, drag to pan</div>`;
-  document.body.appendChild(viewer);
-  
-  const container = viewer.querySelector('.image-viewer-container');
-  const img = viewer.querySelector('img');
-  let scale = 1;
-  let translateX = 0;
-  let translateY = 0;
-  let initialDistance = 0;
-  let initialScale = 1;
-  let startX = 0, startY = 0;
-  let isPanning = false;
-  
-  // Update transform
-  const updateTransform = () => {
-    img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
-  };
-  
-  // Reset view (double tap)
-  const resetView = () => {
-    scale = 1;
-    translateX = 0;
-    translateY = 0;
-    updateTransform();
-  };
-  
-  // Close button
-  viewer.querySelector('.image-viewer-close').addEventListener('click', () => viewer.remove());
-  
-  // Click on background to close
-  viewer.addEventListener('click', (e) => { 
-    if (e.target === viewer) viewer.remove(); 
-  });
-  
-  // Double tap to reset
-  img.addEventListener('dblclick', (e) => {
-    e.stopPropagation();
-    resetView();
-  });
-  
-  // PINCH ZOOM (two fingers)
-  img.addEventListener('touchstart', (e) => {
-    if (e.touches.length === 2) {
-      e.preventDefault();
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      initialDistance = Math.hypot(dx, dy);
-      initialScale = scale;
-      isPanning = false;
-    } else if (e.touches.length === 1 && scale > 1) {
-      // Start panning (only when zoomed in)
-      isPanning = true;
-      startX = e.touches[0].clientX - translateX;
-      startY = e.touches[0].clientY - translateY;
-    }
-  });
-  
-  img.addEventListener('touchmove', (e) => {
-    if (e.touches.length === 2 && initialDistance > 0) {
-      // Pinch to zoom
-      e.preventDefault();
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      const currentDistance = Math.hypot(dx, dy);
-      let newScale = initialScale * (currentDistance / initialDistance);
-      newScale = Math.min(4, Math.max(0.5, newScale));
-      
-      if (newScale !== scale) {
-        scale = newScale;
-        updateTransform();
-      }
-    } else if (e.touches.length === 1 && isPanning && scale > 1) {
-      // Pan/Drag when zoomed in
-      e.preventDefault();
-      const newTranslateX = e.touches[0].clientX - startX;
-      const newTranslateY = e.touches[0].clientY - startY;
-      
-      // Add boundaries to prevent dragging too far
-      const maxX = (img.clientWidth * (scale - 1)) / 2;
-      const maxY = (img.clientHeight * (scale - 1)) / 2;
-      translateX = Math.min(maxX, Math.max(-maxX, newTranslateX));
-      translateY = Math.min(maxY, Math.max(-maxY, newTranslateY));
-      updateTransform();
-    }
-  });
-  
-  img.addEventListener('touchend', (e) => {
-    if (e.touches.length < 2) {
-      initialDistance = 0;
-    }
-    if (e.touches.length === 0) {
-      isPanning = false;
-    }
-  });
-  
-  // Mouse support for desktop
-  let isMousePanning = false;
-  let lastMouseX = 0, lastMouseY = 0;
-  
-  img.addEventListener('mousedown', (e) => {
-    if (scale > 1) {
-      isMousePanning = true;
-      lastMouseX = e.clientX - translateX;
-      lastMouseY = e.clientY - translateY;
-      e.preventDefault();
-    }
-  });
-  
-  window.addEventListener('mousemove', (e) => {
-    if (isMousePanning && scale > 1) {
-      const newTranslateX = e.clientX - lastMouseX;
-      const newTranslateY = e.clientY - lastMouseY;
-      const maxX = (img.clientWidth * (scale - 1)) / 2;
-      const maxY = (img.clientHeight * (scale - 1)) / 2;
-      translateX = Math.min(maxX, Math.max(-maxX, newTranslateX));
-      translateY = Math.min(maxY, Math.max(-maxY, newTranslateY));
-      updateTransform();
-    }
-  });
-  
-  window.addEventListener('mouseup', () => {
-    isMousePanning = false;
-  });
-}
-
 const formatDateFull = (dateStr) => {
   const [y,m,d] = dateStr.split('-');
   const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -1366,7 +1220,6 @@ const formatDateFull = (dateStr) => {
   const dt = new Date(parseInt(y), parseInt(m)-1, parseInt(d));
   return `${days[dt.getDay()]}, ${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
 };
-
 const monthName = (m) => ['January','February','March','April','May','June','July','August','September','October','November','December'][m];
 const shortMonth = (m) => ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m];
 
@@ -1558,16 +1411,15 @@ const loadCalendarEvents = async () => {
     if (r.ok) {
       const data = await r.json();
       calendarEvents = data.map(e => ({ 
-  id: e.id, 
-  title: e.title, 
-  description: e.description || '', 
-  eventDate: e.event_date, 
-  eventType: e.event_type || 'event', 
-  yearOfBirth: e.year_of_birth || null,
-  deathYear: e.death_year || null,  // ADD THIS LINE
-  createdBy: e.created_by, 
-  createdAt: e.created_at 
-}));
+        id: e.id, 
+        title: e.title, 
+        description: e.description || '', 
+        eventDate: e.event_date, 
+        eventType: e.event_type || 'event', 
+        yearOfBirth: e.year_of_birth || null,
+        createdBy: e.created_by, 
+        createdAt: e.created_at 
+      }));
     }
   } catch(e) { console.error('Error loading calendar:', e); }
   return calendarEvents;
@@ -1581,10 +1433,10 @@ const saveCalendarEvent = async (ev) => {
       event_date: ev.eventDate, 
       event_type: ev.eventType || 'event', 
       year_of_birth: ev.yearOfBirth || null,
-      death_year: ev.deathYear || null,  // ADD THIS LINE
       created_by: ev.createdBy, 
       created_at: ev.createdAt || new Date().toISOString() 
-    });    return r.ok;
+    });
+    return r.ok;
   } catch(e) { return false; }
 };
 const updateCalendarEvent = async (ev) => { 
@@ -1731,59 +1583,33 @@ const openAddEventModal = (prefillDate) => {
       <div class="modal-title">📅 Add Event</div>
       <div class="modal-sub">Add a new event to the family calendar</div>
       <input type="text" id="evTitle" placeholder="Event title" autocomplete="off">
+      <input type="date" id="evDate" value="${escapeHtml(prefillDate || today)}">
       <select id="evType">${Object.entries(EVENT_TYPES).map(([k,v]) => `<option value="${k}">${v.icon} ${v.label}</option>`).join('')}</select>
-      
-      <!-- Regular event date (hidden for Memory Walk) -->
-      <div id="regularDateGroup" style="display:block">
-        <label style="font-size:11px; font-weight:600; color:var(--tx2); margin-bottom:2px; display:block; margin-top:6px">📅 Event Date</label>
-        <input type="date" id="evDate" value="${escapeHtml(prefillDate || today)}">
-      </div>
-      
-      <!-- Birthday year field -->
       <div id="yearOfBirthGroup" style="display:none">
-        <label style="font-size:11px; font-weight:600; color:var(--tx2); margin-bottom:2px; display:block; margin-top:6px">🎂 Year of birth</label>
         <input type="number" id="evYearOfBirth" placeholder="Year of birth (e.g. 1990)" min="1900" max="${new Date().getFullYear()}">
       </div>
-      
-      <!-- MEMORY WALK FIELDS (only these two) -->
-      <div id="memoryWalkGroup" style="display:none">
-        <label style="font-size:11px; font-weight:600; color:var(--tx2); margin-bottom:2px; display:block; margin-top:6px">🕊️ Date of Memory</label>
-        <input type="date" id="memDeathDate" placeholder="Date of Memory">
-      </div>
-      
       <textarea id="evDesc" placeholder="Description (optional)" style="margin-bottom:8px"></textarea>
       <div id="evModalMsg"></div>
       <div class="modal-buttons"><button class="btn btn-p" onclick="doAddEvent()">Save Event</button><button class="btn btn-gh" onclick="closeCalModal()">Cancel</button></div>
     </div>`;
   
+  // Show/hide year of birth field based on event type
   const typeSelect = overlay.querySelector('#evType');
-  const regularGroup = overlay.querySelector('#regularDateGroup');
   const yearGroup = overlay.querySelector('#yearOfBirthGroup');
-  const memoryGroup = overlay.querySelector('#memoryWalkGroup');
-  
-  const toggleFields = () => {
+  const toggleYearField = () => {
     if (typeSelect.value === 'birthday') {
-      regularGroup.style.display = 'block';
       yearGroup.style.display = 'block';
-      memoryGroup.style.display = 'none';
-    } else if (typeSelect.value === 'memory') {
-      regularGroup.style.display = 'none';
-      yearGroup.style.display = 'none';
-      memoryGroup.style.display = 'block';
     } else {
-      regularGroup.style.display = 'block';
       yearGroup.style.display = 'none';
-      memoryGroup.style.display = 'none';
     }
   };
-  typeSelect.addEventListener('change', toggleFields);
-  toggleFields();
+  typeSelect.addEventListener('change', toggleYearField);
+  toggleYearField();
   
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeCalModal(); });
   document.body.appendChild(overlay);
   setTimeout(() => document.getElementById('evTitle')?.focus(), 100);
 };
-
 const openEditEventModal = (id) => {
   const ev = calendarEvents.find(e => e.id === id);
   if (!ev || !canEditEvent(ev)) { showMessage('You cannot edit this event.', 'error'); return; }
@@ -1792,156 +1618,81 @@ const openEditEventModal = (id) => {
   overlay.innerHTML = `
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-title">✏️ Edit Event</div>
-      <input type="text" id="evTitle" placeholder="Event title" value="${escapeHtml(ev.title.replace('🕊️ ', ''))}" autocomplete="off">
+      <input type="text" id="evTitle" placeholder="Event title" value="${escapeHtml(ev.title)}" autocomplete="off">
+      <input type="date" id="evDate" value="${escapeHtml(ev.eventDate)}">
       <select id="evType">${Object.entries(EVENT_TYPES).map(([k,v]) => `<option value="${k}" ${k===ev.eventType?'selected':''}>${v.icon} ${v.label}</option>`).join('')}</select>
-      
-      <div id="regularDateGroup" style="${ev.eventType === 'memory' ? 'display:none' : 'display:block'}">
-        <label style="font-size:11px; font-weight:600; color:var(--tx2); margin-bottom:2px; display:block; margin-top:6px">📅 Event Date</label>
-        <input type="date" id="evDate" value="${escapeHtml(ev.eventDate)}">
-      </div>
-      
       <div id="yearOfBirthGroup" style="${ev.eventType === 'birthday' ? 'display:block' : 'display:none'}">
-        <label style="font-size:11px; font-weight:600; color:var(--tx2); margin-bottom:2px; display:block; margin-top:6px">🎂 Year of birth</label>
         <input type="number" id="evYearOfBirth" placeholder="Year of birth" value="${ev.yearOfBirth || ''}" min="1900" max="${new Date().getFullYear()}">
       </div>
-      
-      <div id="memoryWalkGroup" style="${ev.eventType === 'memory' ? 'display:block' : 'display:none'}">
-        <label style="font-size:11px; font-weight:600; color:var(--tx2); margin-bottom:2px; display:block; margin-top:6px">🕊️ Date of Memory</label>
-        <input type="date" id="memDeathDate" placeholder="Date of memory" value="${ev.eventDate}">
-      </div>
-      
       <textarea id="evDesc" placeholder="Description (optional)" style="margin-bottom:8px">${escapeHtml(ev.description)}</textarea>
       <div id="evModalMsg"></div>
       <div class="modal-buttons"><button class="btn btn-p" onclick="doEditEvent(${id})">Save Changes</button><button class="btn btn-gh" onclick="closeCalModal()">Cancel</button></div>
     </div>`;
   
   const typeSelect = overlay.querySelector('#evType');
-  const regularGroup = overlay.querySelector('#regularDateGroup');
   const yearGroup = overlay.querySelector('#yearOfBirthGroup');
-  const memoryGroup = overlay.querySelector('#memoryWalkGroup');
-  
-  const toggleFields = () => {
+  const toggleYearField = () => {
     if (typeSelect.value === 'birthday') {
-      regularGroup.style.display = 'block';
       yearGroup.style.display = 'block';
-      memoryGroup.style.display = 'none';
-    } else if (typeSelect.value === 'memory') {
-      regularGroup.style.display = 'none';
-      yearGroup.style.display = 'none';
-      memoryGroup.style.display = 'block';
     } else {
-      regularGroup.style.display = 'block';
       yearGroup.style.display = 'none';
-      memoryGroup.style.display = 'none';
     }
   };
-  typeSelect.addEventListener('change', toggleFields);
+  typeSelect.addEventListener('change', toggleYearField);
   
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeCalModal(); });
   document.body.appendChild(overlay);
-};const doAddEvent = async () => {
+};
+const doAddEvent = async () => {
   const title = document.getElementById('evTitle')?.value.trim();
-  const type = document.getElementById('evType')?.value;
   const date = document.getElementById('evDate')?.value;
+  const type = document.getElementById('evType')?.value;
   const yearOfBirth = document.getElementById('evYearOfBirth')?.value;
-  const memDeathDate = document.getElementById('memDeathDate')?.value;
   const desc = document.getElementById('evDesc')?.value.trim();
   const msgEl = document.getElementById('evModalMsg');
-  
   if (!title) { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter a title.</div>`; return; }
-  
-  let finalEventDate = date;
-  let deathYearNum = null;
-  let birthYearNum = null;
-  
-  if (type === 'memory') {
-    if (!memDeathDate) {
-      if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter date of memory for Memory Walk.</div>`;
-      return;
-    }
-    finalEventDate = memDeathDate;
-    deathYearNum = parseInt(memDeathDate.split('-')[0]);
-  } else {
-    if (!date) {
-      if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please select a date.</div>`;
-      return;
-    }
-    if (type === 'birthday' && yearOfBirth && (yearOfBirth < 1900 || yearOfBirth > new Date().getFullYear())) {
-      if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter a valid year.</div>`;
-      return;
-    }
-    birthYearNum = (type === 'birthday' && yearOfBirth) ? parseInt(yearOfBirth) : null;
+  if (!date) { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please select a date.</div>`; return; }
+  if (type === 'birthday' && yearOfBirth && (yearOfBirth < 1900 || yearOfBirth > new Date().getFullYear())) {
+    if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter a valid year.</div>`; return;
   }
-  
   if (msgEl) msgEl.innerHTML = `<div class="al al-i">Saving...</div>`;
-  
   const newEv = { 
     id: Date.now(), 
-    title: type === 'memory' ? `🕊️ ${title}` : title,
-    eventDate: finalEventDate, 
+    title, 
+    eventDate: date, 
     eventType: type, 
     description: desc || '', 
-    yearOfBirth: birthYearNum,
-    deathYear: type === 'memory' ? deathYearNum : null,
+    yearOfBirth: type === 'birthday' ? (yearOfBirth || null) : null,
     createdBy: currentUser.username, 
     createdAt: new Date().toISOString() 
   };
-  
   const saved = await saveCalendarEvent(newEv);
   if (saved) { 
     calendarEvents.push(newEv); 
     calendarEvents.sort((a,b) => a.eventDate.localeCompare(b.eventDate)); 
     closeCalModal(); 
-    showMessage(type === 'memory' ? 'Memory added! 🕊️' : 'Event added! 🎉', 'success'); 
+    showMessage('Event added! 🎉', 'success'); 
     renderCalendar(); 
     notifyNewEvent(title, currentUser.username); 
   }
   else { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Error saving. Check Supabase table setup.</div>`; }
 };
-
 const doEditEvent = async (id) => {
   const title = document.getElementById('evTitle')?.value.trim();
   const date = document.getElementById('evDate')?.value;
   const type = document.getElementById('evType')?.value;
   const yearOfBirth = document.getElementById('evYearOfBirth')?.value;
-  const memBirthDate = document.getElementById('memBirthDate')?.value;
-  const memDeathDate = document.getElementById('memDeathDate')?.value;
   const desc = document.getElementById('evDesc')?.value.trim();
   const msgEl = document.getElementById('evModalMsg');
-  
   if (!title) { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter a title.</div>`; return; }
   if (!date) { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please select a date.</div>`; return; }
-  
-  if (type === 'memory' && !memDeathDate) {
-    if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter date of memory.</div>`; return;
-  }
-  
   if (msgEl) msgEl.innerHTML = `<div class="al al-i">Saving...</div>`;
   const ev = calendarEvents.find(e => e.id === id); if (!ev) return;
-  
-  let finalEventDate = date;
-  let deathYearNum = ev.deathYear;
-  let birthYearNum = ev.yearOfBirth;
-  
-  if (type === 'memory') {
-    finalEventDate = memDeathDate;
-    deathYearNum = parseInt(memDeathDate.split('-')[0]);
-    birthYearNum = memBirthDate ? parseInt(memBirthDate.split('-')[0]) : null;
-  } else if (type === 'birthday') {
-    birthYearNum = yearOfBirth || null;
-    deathYearNum = null;
-  } else {
-    birthYearNum = null;
-    deathYearNum = null;
-  }
-  
-  ev.title = type === 'memory' ? `🕊️ ${title}` : title;
-  ev.eventDate = finalEventDate;
-  ev.eventType = type;
-  ev.yearOfBirth = birthYearNum;
-  ev.deathYear = deathYearNum;
+  ev.title = title; 
+  ev.eventDate = date; 
+  ev.eventType = type; 
+  ev.yearOfBirth = type === 'birthday' ? (yearOfBirth || null) : null;
   ev.description = desc || '';
-  
   const updated = await updateCalendarEvent(ev);
   if (updated) { 
     calendarEvents.sort((a,b) => a.eventDate.localeCompare(b.eventDate)); 
@@ -1990,7 +1741,6 @@ const compressImage = (file, maxPx = 1200, quality = 0.78) => new Promise((resol
   };
   reader.readAsDataURL(file);
 });
-
 
 // ============ RECIPE LOGIC ============
 const canEditRecipe = (rec) => currentUser.role === 'admin' || rec.createdBy === currentUser.username;
@@ -2487,13 +2237,6 @@ const renderHome = () => {
     let age = eventDateObj.getFullYear() - birthYear;
     ageDisplay = `<div style="font-size:8px;color:var(--a1);margin-top:2px">🎂 Turning ${age}</div>`;
   }
-let memoryDisplay = '';
-if (ev.eventType === 'memory') {
-  const deathYear = ev.deathYear || parseInt(ev.eventDate.split('-')[0]);
-  const currentYear = new Date().getFullYear();
-  const yearsSince = currentYear - deathYear;
-  memoryDisplay = `<div style="font-size:8px;color:#8E44AD;margin-top:2px">🕊️ ${yearsSince} year${yearsSince !== 1 ? 's' : ''} ago</div>`;
-}
   return `<div class="upcoming-strip"><div class="udb"><div class="udb-day">${parseInt(d)}</div><div class="udb-mon">${shortMonth(parseInt(m)-1)}</div></div><div style="flex:1;min-width:0"><div style="font-weight:800;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${et.icon} ${escapeHtml(ev.title)}</div>${ageDisplay}<div style="font-size:10px;color:var(--tx3);margin-top:1px">${escapeHtml(ev.createdBy)}</div></div><span class="event-badge ${et.badgeClass}">${et.label}</span></div>`;
 }).join('')}
         <button class="btn btn-gh btn-w" style="margin-top:6px;font-size:11px" onclick="navigateTo('calendar')">View Full Calendar →</button>
@@ -2645,45 +2388,13 @@ const renderCalendar = () => {
   for (let d = 1; d <= lastDate; d++) days.push({ dateStr: `${year}-${pad2(month+1)}-${pad2(d)}`, num: d, other: false });
   while (days.length < 42) { const d = new Date(year, month + 1, days.length - startDow - lastDate + 1); days.push({ dateStr: toDateStr(d), num: d.getDate(), other: true }); }
   const evByDate = {};
-  calendarEvents.forEach(ev => {
-    const [evYear, evMonth, evDay] = ev.eventDate.split('-').map(Number);
-    // FOR EVERY EVENT: display it in EVERY year on same month+day
-    const displayYear = year;  // current viewing year
-    const displayDateStr = `${displayYear}-${pad2(evMonth)}-${pad2(evDay)}`;
-    if(!evByDate[displayDateStr]) evByDate[displayDateStr] = [];
-    
-    let ageDisplay = '';
-    if(ev.eventType === 'memory' && ev.yearOfBirth && ev.deathYear) {
-      const age = ev.deathYear - ev.yearOfBirth;
-      ageDisplay = ` (Age ${age})`;
-    } else if(ev.eventType === 'birthday' && ev.yearOfBirth) {
-      const ageThisYear = year - ev.yearOfBirth;
-      ageDisplay = ` (turns ${ageThisYear})`;
-    }
-    
-    evByDate[displayDateStr].push({...ev, displaySuffix: ageDisplay});
-  });
-let listEvents = [];
-if (calendarSelectedDay) {
-  listEvents = evByDate[calendarSelectedDay] || [];
-} else {
-  // Get all events for the current month from evByDate
-  const monthStart = `${year}-${pad2(month+1)}-01`;
-  const monthEnd = `${year}-${pad2(month+1)}-${lastDate}`;
-  listEvents = Object.entries(evByDate)
-    .filter(([date]) => date >= monthStart && date <= monthEnd)
-    .flatMap(([, events]) => events);
-}
-if (calendarFilter !== 'all') listEvents = listEvents.filter(ev => ev.eventType === calendarFilter);
- 
+  calendarEvents.forEach(ev => { if (!evByDate[ev.eventDate]) evByDate[ev.eventDate] = []; evByDate[ev.eventDate].push(ev); });
+  let listEvents = calendarEvents.filter(ev => { const [y,m] = ev.eventDate.split('-'); return parseInt(y)===year && parseInt(m)===(month+1); });
+  if (calendarSelectedDay) listEvents = listEvents.filter(ev => ev.eventDate === calendarSelectedDay);
+  if (calendarFilter !== 'all') listEvents = listEvents.filter(ev => ev.eventType === calendarFilter);
   const dayHeaders = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
- container.innerHTML = `
-  <div class="sh">
-    <div><div class="sh-t">📅 Calendar & Memory Walk</div><div class="sh-s">Family events &amp; remembering loved ones</div></div>
-    <div style="display:flex; gap:6px;">
-  <button class="btn btn-sm btn-p" onclick="openAddEventModal('${today}')">+ Add Event</button>
-</div>
-  </div>
+  container.innerHTML = `
+    <div class="sh"><div><div class="sh-t">📅 Calendar</div><div class="sh-s">Family events &amp; birthdays</div></div><button class="btn btn-p btn-sm" onclick="openAddEventModal('${today}')">+ Add</button></div>
     <div class="cal-header"><button class="cal-nav-btn" onclick="calPrevMonth()">‹</button><div class="cal-month-label">${monthName(month)} ${year}</div><button class="cal-nav-btn" onclick="calNextMonth()">›</button></div>
     <div class="cal-grid">
       <div class="cal-day-headers">${dayHeaders.map(d => `<div class="cal-day-hdr">${d}</div>`).join('')}</div>
@@ -2726,17 +2437,7 @@ if (ev.eventType === 'birthday' && ev.yearOfBirth) {
     ageDisplay = `<div style="font-size:10px;color:var(--a1);margin-top:2px">🎂 Will turn ${age} years old</div>`;
   }
 }
-      return `<div class="event-card"><div class="event-icon ${et.iconClass}">${et.icon}</div><div style="flex:1;min-width:0"><div class="event-title">${escapeHtml(ev.title)}</div>
-${ev.eventType === 'memory' ? (() => {
-  const deathYear = ev.deathYear || parseInt(ev.eventDate.split('-')[0]);
-  const currentYear = new Date().getFullYear();
-  const yearsSince = currentYear - deathYear;
-  const livedYears = ev.yearOfBirth ? (deathYear - ev.yearOfBirth) : null;
-  return `<div style="font-size:9px;color:#8E44AD;margin-top:2px">
-    🕊️ Passed ${yearsSince} year${yearsSince !== 1 ? 's' : ''} ago
-    ${livedYears ? ` · Lived ${livedYears} years` : ''}
-  </div>`;
-})() : ''}<div style="margin-top:2px"><span class="event-badge ${et.badgeClass}">${et.label}</span></div><div class="event-date-label" style="margin-top:4px">📅 ${formatDateFull(ev.eventDate)}</div>${ageDisplay}${ev.description ? `<div class="event-desc">${escapeHtml(ev.description)}</div>` : ''}<div class="event-date-label" style="margin-top:4px">👤 ${escapeHtml(ev.createdBy)}</div>${canEdit ? `<div class="event-actions"><button class="btn btn-sm btn-gh" onclick="openEditEventModal(${ev.id})">✏️ Edit</button><button class="btn btn-sm btn-d" onclick="confirmDeleteEvent(${ev.id})">🗑️ Delete</button></div>` : ''}</div></div>`;
+      return `<div class="event-card"><div class="event-icon ${et.iconClass}">${et.icon}</div><div style="flex:1;min-width:0"><div class="event-title">${escapeHtml(ev.title)}</div><div style="margin-top:2px"><span class="event-badge ${et.badgeClass}">${et.label}</span></div><div class="event-date-label" style="margin-top:4px">📅 ${formatDateFull(ev.eventDate)}</div>${ageDisplay}${ev.description ? `<div class="event-desc">${escapeHtml(ev.description)}</div>` : ''}<div class="event-date-label" style="margin-top:4px">👤 ${escapeHtml(ev.createdBy)}</div>${canEdit ? `<div class="event-actions"><button class="btn btn-sm btn-gh" onclick="openEditEventModal(${ev.id})">✏️ Edit</button><button class="btn btn-sm btn-d" onclick="confirmDeleteEvent(${ev.id})">🗑️ Delete</button></div>` : ''}</div></div>`;
     }).join('')}
   `;
 };
@@ -2747,7 +2448,7 @@ const renderRecipes = () => {
   if (currentRecipe) { renderRecipeDetail(currentRecipe); return; }
   let filteredRecipes = recipeFilter === 'all' ? recipes : recipes.filter(r => r.category === recipeFilter);
   container.innerHTML = `
-    <div class="sh"><div><div class="sh-t">🍳 Recipes</div><div class="sh-s">${filteredRecipes.length} recipe${filteredRecipes.length !== 1 ? 's' : ''}</div></div><button class="btn btn-recipe btn-sm" onclick="openAddRecipeModal()">+ Add</button></div>
+    <div class="sh"><div><div class="sh-t">🍳 Recipes</div><div class="sh-s">Family recipes shared with love</div></div><button class="btn btn-recipe btn-sm" onclick="openAddRecipeModal()">+ Add</button></div>
     <div class="pill-tabs">
       <button class="pill-tab ${recipeFilter==='all'?'active':''}" onclick="setRecipeFilter('all')">All</button>
       ${Object.entries(RECIPE_CATEGORIES).map(([k,v]) => `<button class="pill-tab ${recipeFilter===k?'active':''}" onclick="setRecipeFilter('${k}')">${v}</button>`).join('')}
@@ -2758,21 +2459,23 @@ const renderRecipes = () => {
         <div class="empty-text">No recipes yet</div>
         <div class="empty-sub">Be the first to share a family recipe!</div>
         <button class="btn btn-recipe" style="margin-top:14px" onclick="openAddRecipeModal()">+ Add First Recipe</button>
-      </div>` : `
-      <div class="folder-list" style="gap:6px">
-        ${filteredRecipes.map(rec => `
-          <div class="folder-list-item" onclick="viewRecipeDetail(${rec.id})" style="border-left: 4px solid var(--recipe); padding: 10px 12px; cursor:pointer">
-            <div class="folder-list-icon" style="font-size:22px">🍳</div>
-            <div class="folder-list-info">
-              <div class="folder-list-name" style="font-size:14px; font-weight:600">${escapeHtml(rec.title)}</div>
-              <div class="folder-list-meta" style="font-size:10px">${RECIPE_CATEGORIES[rec.category] || 'Other'} · by ${escapeHtml(rec.createdBy)}</div>
-            </div>
-            <div class="folder-list-status" style="font-size:10px">📄</div>
+      </div>` : filteredRecipes.map(rec => `
+      <div class="recipe-card" onclick="viewRecipeDetail(${rec.id})">
+        ${rec.images_data && rec.images_data !== '[]' ? 
+  `<img class="recipe-img" src="${JSON.parse(rec.images_data)[0]}" alt="${escapeHtml(rec.title)}" onerror="this.style.display='none'">` : 
+  (rec.image_data ? `<img class="recipe-img" src="${rec.image_data}" alt="${escapeHtml(rec.title)}" onerror="this.style.display='none'">` : `<div class="recipe-img-placeholder">🍽️</div>`)
+}}
+        <div class="recipe-body">
+          <div class="recipe-title">${escapeHtml(rec.title)}</div>
+          <div class="recipe-meta">
+            <span class="recipe-badge">${RECIPE_CATEGORIES[rec.category] || '🍴 Other'}</span>
+           ${rec.prep_time ? `<span class="recipe-badge">⏱️ ${escapeHtml(rec.prep_time)}</span>` : ''}
+${rec.servings ? `<span class="recipe-badge">👥 ${escapeHtml(rec.servings)}</span>` : ''}
           </div>
-        `).join('')}
-      </div>
-    `}
-  `;
+          ${rec.description ? `<div class="recipe-desc">${escapeHtml(rec.description)}</div>` : ''}
+          <div style="font-size:10px;color:var(--tx3);margin-top:6px;font-weight:600">👨‍🍳 ${escapeHtml(rec.createdBy)} · ${new Date(rec.createdAt).toLocaleDateString()}</div>
+        </div>
+      </div>`).join('')}`;
 };
 
 const renderRecipeDetail = (id) => {
@@ -2788,17 +2491,16 @@ const renderRecipeDetail = (id) => {
       <span style="color:var(--tx3)">›</span>
       <span style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">${escapeHtml(rec.title)}</span>
     </div>
-    // Replace the entire image display block with:
-${rec.images_data && rec.images_data !== '[]' ? `
+    ${rec.images_data && rec.images_data !== '[]' ? `
   <div style="display:flex;overflow-x:auto;gap:8px;margin-bottom:10px;padding-bottom:4px">
     ${JSON.parse(rec.images_data).map(img => `
-      <div style="flex-shrink:0;width:120px;height:120px;border-radius:12px;overflow:hidden;cursor:pointer" onclick="showImageViewer('${img}','${escapeHtml(rec.title)}')">
+      <div style="flex-shrink:0;width:120px;height:120px;border-radius:12px;overflow:hidden">
         <img src="${img}" style="width:100%;height:100%;object-fit:cover">
       </div>
     `).join('')}
   </div>
 ` : (rec.image_data ? `
-  <div style="border-radius:14px;overflow:hidden;margin-bottom:10px;height:180px;cursor:pointer" onclick="showImageViewer('${rec.image_data}','${escapeHtml(rec.title)}')">
+  <div style="border-radius:14px;overflow:hidden;margin-bottom:10px;height:180px">
     <img src="${rec.image_data}" style="width:100%;height:100%;object-fit:cover" alt="${escapeHtml(rec.title)}">
   </div>
 ` : '')}
