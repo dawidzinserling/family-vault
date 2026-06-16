@@ -500,17 +500,18 @@ textarea { resize:vertical; min-height:60px; }
 .cal-dot-row { display:flex; gap:2px; margin-top:2px; height:3px; align-items:center; justify-content:center; }
 .cal-dot { width:3px; height:3px; border-radius:50%; flex-shrink:0; }
 .dot-birthday { background:#FF6B9D; } .dot-anniversary { background:#FFB347; }
-.dot-event { background:var(--a1); } .dot-holiday { background:#A78BFA; } .dot-reminder { background:#6EE7B7; }
+.dot-event { background:var(--a1); } .dot-holiday { background:#A78BFA; } .dot-reminder { background:#6EE7B7; } .dot-memory { background:#9C27B0; }
 .event-badge { display:inline-flex; align-items:center; gap:2px; padding:2px 6px; border-radius:20px; font-size:8.5px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; }
 .badge-birthday { background:rgba(255,107,157,.15); color:#FF6B9D; }
 .badge-anniversary { background:rgba(255,179,71,.15); color:#D4943A; }
 .badge-event { background:rgba(61,217,217,.13); color:var(--a1); }
 .badge-holiday { background:rgba(167,139,250,.15); color:#A78BFA; }
 .badge-reminder { background:rgba(110,231,183,.15); color:#3ABB8A; }
+.badge-memory { background:rgba(156,39,176,.15); color:#9C27B0; }
 .event-card { background:var(--s1); border:1px solid var(--bd); border-radius:10px; padding:8px 10px; margin-bottom:6px; display:flex; align-items:flex-start; gap:8px; box-shadow:var(--shadow-sm); }
 .event-icon { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
 .ei-birthday { background:rgba(255,107,157,.15); } .ei-anniversary { background:rgba(255,179,71,.12); }
-.ei-event { background:rgba(61,217,217,.10); } .ei-holiday { background:rgba(167,139,250,.14); } .ei-reminder { background:rgba(110,231,183,.14); }
+.ei-event { background:rgba(61,217,217,.10); } .ei-holiday { background:rgba(167,139,250,.14); } .ei-reminder { background:rgba(110,231,183,.14); } .ei-memory { background:rgba(156,39,176,.14); }
 .event-title { font-size:12px; font-weight:800; margin-bottom:2px; letter-spacing:-.1px; }
 .event-date-label { font-size:9.5px; color:var(--tx3); font-weight:600; }
 .event-desc { font-size:10.5px; color:var(--tx2); margin-top:3px; line-height:1.4; }
@@ -536,16 +537,20 @@ textarea { resize:vertical; min-height:60px; }
 .udb-day { font-size:14px; font-weight:900; line-height:1; }
 .udb-mon { font-size:7px; font-weight:900; text-transform:uppercase; letter-spacing:.5px; }
 
-/* RECIPE CARDS */
-.recipe-card { background:var(--s1); border:1px solid var(--bd); border-radius:12px; overflow:hidden; margin-bottom:8px; box-shadow:var(--shadow-sm); transition:all .2s; }
+/* RECIPE CARDS - No photos in grid/list view */
+.recipe-card { background:var(--s1); border:1px solid var(--bd); border-radius:12px; overflow:hidden; margin-bottom:8px; box-shadow:var(--shadow-sm); transition:all .2s; cursor:pointer; }
 .recipe-card:active { transform:scale(.98); }
-.recipe-img { width:100%; height:110px; object-fit:cover; display:block; }
-.recipe-img-placeholder { width:100%; height:110px; background:linear-gradient(135deg,rgba(255,159,90,.15),rgba(255,159,90,.05)); display:flex; align-items:center; justify-content:center; font-size:36px; }
 .recipe-body { padding:8px 10px; }
-.recipe-title { font-size:13px; font-weight:900; margin-bottom:4px; letter-spacing:-.2px; }
-.recipe-meta { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:5px; }
+.recipe-title { font-size:13px; font-weight:900; margin-bottom:4px; letter-spacing:-.2px; color:var(--tx); }
+.recipe-meta { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:4px; }
 .recipe-badge { display:inline-flex; align-items:center; gap:2px; padding:2px 6px; border-radius:6px; font-size:8.5px; font-weight:700; background:rgba(255,159,90,.12); color:var(--recipe); }
 .recipe-desc { font-size:10.5px; color:var(--tx2); line-height:1.4; }
+.recipe-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+.recipe-grid .recipe-card { margin-bottom:0; }
+.recipe-grid .recipe-body { padding:8px; }
+.recipe-grid .recipe-title { font-size:12px; }
+.recipe-grid .recipe-desc { font-size:9.5px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.recipe-grid .recipe-meta { margin-bottom:3px; }
 
 /* PROFILE PIC */
 .profile-pic-wrap { position:relative; width:64px; height:64px; margin:0 auto 10px; cursor:pointer; }
@@ -953,6 +958,37 @@ const EVENT_TYPES = {
   event:       { label:'Event',       icon:'🎉', dotClass:'dot-event',       badgeClass:'badge-event',       iconClass:'ei-event'       },
   holiday:     { label:'Holiday',     icon:'🌟', dotClass:'dot-holiday',     badgeClass:'badge-holiday',     iconClass:'ei-holiday'     },
   reminder:    { label:'Reminder',    icon:'📌', dotClass:'dot-reminder',    badgeClass:'badge-reminder',    iconClass:'ei-reminder'    },
+  memory:      { label:'Memory',      icon:'🕊️', dotClass:'dot-memory',      badgeClass:'badge-memory',      iconClass:'ei-memory'      }
+};
+
+// ============ HELPER: Time since passed ============
+const getTimeSincePassed = (passedDate) => {
+  if (!passedDate) return null;
+  const now = new Date();
+  const passed = new Date(passedDate);
+  if (isNaN(passed.getTime())) return null;
+  
+  let years = now.getFullYear() - passed.getFullYear();
+  let months = now.getMonth() - passed.getMonth();
+  let days = now.getDate() - passed.getDate();
+  
+  if (days < 0) {
+    months--;
+    const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    days += prevMonth.getDate();
+  }
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
+  
+  let parts = [];
+  if (years > 0) parts.push(`${years} year${years > 1 ? 's' : ''}`);
+  if (months > 0) parts.push(`${months} month${months > 1 ? 's' : ''}`);
+  if (days > 0 && years === 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
+  
+  if (parts.length === 0) return 'Today';
+  return parts.join(', ');
 };
 
 // ============ FOLDER COLORS ============
@@ -1140,6 +1176,316 @@ let userProfiles = {};
 let folderViewMode = localStorage.getItem('folderViewMode') || 'grid';
 let pendingRecipeImages = [];
 
+// ============ RECIPE SORTING ============
+let recipeSortBy = localStorage.getItem('recipeSortBy') || 'name';
+
+const sortRecipes = (recipesToSort) => {
+  const sorted = [...recipesToSort];
+  switch (recipeSortBy) {
+    case 'name':
+      sorted.sort((a, b) => a.title.localeCompare(b.title));
+      break;
+    case 'date':
+      sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      break;
+    case 'creator':
+      sorted.sort((a, b) => a.createdBy.localeCompare(b.createdBy));
+      break;
+    default:
+      sorted.sort((a, b) => a.title.localeCompare(b.title));
+  }
+  return sorted;
+};
+
+const setRecipeSort = (sortType) => {
+  recipeSortBy = sortType;
+  localStorage.setItem('recipeSortBy', sortType);
+  renderRecipes();
+};
+
+const toggleRecipeSortMenu = (event) => {
+  event.stopPropagation();
+  const menu = document.getElementById('recipeSortMenu');
+  if (menu) {
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+  }
+};
+
+// ============ LIGHTBOX FOR RECIPE IMAGES ============
+let lightboxImages = [];
+let currentLightboxIndex = 0;
+let lightboxZoom = 1;
+let lightboxPanX = 0;
+let lightboxPanY = 0;
+let isDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+let dragStartPanX = 0;
+let dragStartPanY = 0;
+
+const openRecipeLightbox = (images, index) => {
+  if (!images || images.length === 0) {
+    showMessage('No images to display', 'error');
+    return;
+  }
+  lightboxImages = images;
+  currentLightboxIndex = index;
+  lightboxZoom = 1;
+  lightboxPanX = 0;
+  lightboxPanY = 0;
+  renderLightbox();
+};
+
+const closeLightbox = () => {
+  const overlay = document.getElementById('lightboxOverlay');
+  if (overlay) overlay.remove();
+  lightboxImages = [];
+  document.body.style.overflow = '';
+};
+
+const renderLightbox = () => {
+  const existing = document.getElementById('lightboxOverlay');
+  if (existing) existing.remove();
+  
+  const overlay = document.createElement('div');
+  overlay.id = 'lightboxOverlay';
+  overlay.style.cssText = `
+    position:fixed; top:0; left:0; right:0; bottom:0;
+    background:rgba(0,0,0,0.95);
+    z-index:9999;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    touch-action:none;
+    user-select:none;
+    -webkit-user-select:none;
+  `;
+  
+  overlay.innerHTML = `
+    <div style="position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none;">
+      <div id="lightboxCloseBtn" style="position:absolute;top:20px;right:20px;z-index:10000;background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:44px;height:44px;color:white;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;">✕</div>
+      <div id="lightboxCounter" style="position:absolute;top:20px;left:20px;z-index:10000;color:white;font-size:14px;font-weight:600;background:rgba(0,0,0,0.5);padding:6px 14px;border-radius:20px;">${currentLightboxIndex+1} / ${lightboxImages.length}</div>
+      <div id="lightboxImageContainer" style="position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none;cursor:grab;">
+        <img id="lightboxImage" src="${lightboxImages[currentLightboxIndex]}" style="
+          max-width:100%;
+          max-height:100%;
+          object-fit:contain;
+          transform: scale(${lightboxZoom}) translate(${lightboxPanX}px, ${lightboxPanY}px);
+          transition: transform 0.05s ease;
+          cursor: ${lightboxZoom > 1 ? 'grab' : 'default'};
+          will-change: transform;
+          touch-action:none;
+        " onerror="this.style.display='none'; showMessage('Image failed to load', 'error');">
+      </div>
+      <div style="position:absolute;bottom:30px;left:50%;transform:translateX(-50%);z-index:10000;display:flex;gap:16px;align-items:center;">
+        <button id="lightboxPrevBtn" style="background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:48px;height:48px;color:white;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;">‹</button>
+        <div style="display:flex;gap:8px;align-items:center;background:rgba(0,0,0,0.4);padding:8px 16px;border-radius:30px;">
+          <button id="lightboxZoomOut" style="background:none;border:none;color:white;font-size:20px;cursor:pointer;padding:4px 8px;">−</button>
+          <span style="color:white;font-size:13px;font-weight:600;min-width:40px;text-align:center;">${Math.round(lightboxZoom * 100)}%</span>
+          <button id="lightboxZoomIn" style="background:none;border:none;color:white;font-size:20px;cursor:pointer;padding:4px 8px;">+</button>
+          <button id="lightboxResetZoom" style="background:none;border:none;color:white;font-size:16px;cursor:pointer;padding:4px 8px;">⟲</button>
+        </div>
+        <button id="lightboxNextBtn" style="background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:48px;height:48px;color:white;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;">›</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+  
+  // Close button
+  document.getElementById('lightboxCloseBtn').addEventListener('click', closeLightbox);
+  
+  // Navigation buttons
+  document.getElementById('lightboxPrevBtn').addEventListener('click', () => {
+    if (lightboxImages.length > 1) {
+      currentLightboxIndex = (currentLightboxIndex - 1 + lightboxImages.length) % lightboxImages.length;
+      lightboxZoom = 1;
+      lightboxPanX = 0;
+      lightboxPanY = 0;
+      updateLightboxImage();
+    }
+  });
+  
+  document.getElementById('lightboxNextBtn').addEventListener('click', () => {
+    if (lightboxImages.length > 1) {
+      currentLightboxIndex = (currentLightboxIndex + 1) % lightboxImages.length;
+      lightboxZoom = 1;
+      lightboxPanX = 0;
+      lightboxPanY = 0;
+      updateLightboxImage();
+    }
+  });
+  
+  // Zoom buttons
+  document.getElementById('lightboxZoomIn').addEventListener('click', () => {
+    lightboxZoom = Math.min(lightboxZoom * 1.4, 5);
+    updateLightboxTransform();
+  });
+  
+  document.getElementById('lightboxZoomOut').addEventListener('click', () => {
+    lightboxZoom = Math.max(lightboxZoom / 1.4, 0.5);
+    if (lightboxZoom < 1) { lightboxZoom = 1; lightboxPanX = 0; lightboxPanY = 0; }
+    updateLightboxTransform();
+  });
+  
+  document.getElementById('lightboxResetZoom').addEventListener('click', () => {
+    lightboxZoom = 1;
+    lightboxPanX = 0;
+    lightboxPanY = 0;
+    updateLightboxTransform();
+  });
+  
+  // Mouse wheel zoom
+  const imgContainer = document.getElementById('lightboxImageContainer');
+  imgContainer.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    lightboxZoom = Math.min(Math.max(lightboxZoom * delta, 0.5), 5);
+    if (lightboxZoom < 1) { lightboxZoom = 1; lightboxPanX = 0; lightboxPanY = 0; }
+    updateLightboxTransform();
+  }, { passive: false });
+  
+  // Mouse drag to pan (when zoomed in)
+  const img = document.getElementById('lightboxImage');
+  
+  img.addEventListener('mousedown', (e) => {
+    if (lightboxZoom > 1) {
+      isDragging = true;
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+      dragStartPanX = lightboxPanX;
+      dragStartPanY = lightboxPanY;
+      img.style.cursor = 'grabbing';
+    }
+  });
+  
+  document.addEventListener('mousemove', (e) => {
+    if (isDragging && lightboxZoom > 1) {
+      const dx = e.clientX - dragStartX;
+      const dy = e.clientY - dragStartY;
+      lightboxPanX = dragStartPanX + dx;
+      lightboxPanY = dragStartPanY + dy;
+      updateLightboxTransform();
+    }
+  });
+  
+  document.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false;
+      img.style.cursor = 'grab';
+    }
+  });
+  
+  // Touch events for mobile
+  let touchStartDistance = 0;
+  let touchStartZoom = 1;
+  let touchStartPanX = 0;
+  let touchStartPanY = 0;
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let isPinching = false;
+  let isTouching = false;
+  let touchPanStartX = 0;
+  let touchPanStartY = 0;
+  let touchPanStartPanX = 0;
+  let touchPanStartPanY = 0;
+  
+  img.addEventListener('touchstart', (e) => {
+    const touches = e.touches;
+    if (touches.length === 1) {
+      isTouching = true;
+      touchStartX = touches[0].clientX;
+      touchStartY = touches[0].clientY;
+      touchPanStartX = touchStartX;
+      touchPanStartY = touchStartY;
+      touchPanStartPanX = lightboxPanX;
+      touchPanStartPanY = lightboxPanY;
+    } else if (touches.length === 2) {
+      isPinching = true;
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      touchStartDistance = Math.sqrt(dx*dx + dy*dy);
+      touchStartZoom = lightboxZoom;
+      touchStartPanX = lightboxPanX;
+      touchStartPanY = lightboxPanY;
+    }
+  }, { passive: true });
+  
+  img.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    const touches = e.touches;
+    if (touches.length === 1 && isTouching && lightboxZoom > 1) {
+      const dx = touches[0].clientX - touchStartX;
+      const dy = touches[0].clientY - touchStartY;
+      lightboxPanX = touchPanStartPanX + dx;
+      lightboxPanY = touchPanStartPanY + dy;
+      updateLightboxTransform();
+    } else if (touches.length === 2 && isPinching) {
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      const distance = Math.sqrt(dx*dx + dy*dy);
+      const scale = distance / touchStartDistance;
+      lightboxZoom = Math.min(Math.max(touchStartZoom * scale, 0.5), 5);
+      if (lightboxZoom < 1) { lightboxZoom = 1; lightboxPanX = 0; lightboxPanY = 0; }
+      updateLightboxTransform();
+    }
+  }, { passive: false });
+  
+  img.addEventListener('touchend', (e) => {
+    isPinching = false;
+    isTouching = false;
+  }, { passive: true });
+  
+  // Click on image to toggle zoom
+  img.addEventListener('click', () => {
+    if (lightboxZoom > 1) {
+      lightboxZoom = 1;
+      lightboxPanX = 0;
+      lightboxPanY = 0;
+      updateLightboxTransform();
+    } else {
+      lightboxZoom = 2;
+      updateLightboxTransform();
+    }
+  });
+  
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') document.getElementById('lightboxPrevBtn')?.click();
+    if (e.key === 'ArrowRight') document.getElementById('lightboxNextBtn')?.click();
+  });
+  
+  // Close on overlay click (not on image)
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay || e.target.id === 'lightboxCloseBtn') {
+      closeLightbox();
+    }
+  });
+};
+
+const updateLightboxImage = () => {
+  const img = document.getElementById('lightboxImage');
+  const counter = document.getElementById('lightboxCounter');
+  if (img) img.src = lightboxImages[currentLightboxIndex];
+  if (counter) counter.textContent = `${currentLightboxIndex + 1} / ${lightboxImages.length}`;
+  lightboxZoom = 1;
+  lightboxPanX = 0;
+  lightboxPanY = 0;
+  updateLightboxTransform();
+};
+
+const updateLightboxTransform = () => {
+  const img = document.getElementById('lightboxImage');
+  if (img) {
+    img.style.transform = `scale(${lightboxZoom}) translate(${lightboxPanX}px, ${lightboxPanY}px)`;
+    img.style.cursor = lightboxZoom > 1 ? 'grab' : 'default';
+    const zoomDisplay = document.querySelector('#lightboxOverlay span[style*="min-width:40px"]');
+    if (zoomDisplay) zoomDisplay.textContent = `${Math.round(lightboxZoom * 100)}%`;
+  }
+};
+
 // ============ AUTO LOCATION TRACKING ============
 let locationWatchId = null;
 let locationUpdateThrottle = null;
@@ -1322,7 +1668,7 @@ const loadUserProfiles = async () => {
           location_lng: p.location_lng || null,
           location_updated: p.location_updated || null,
           sharing_with: p.sharing_with ? JSON.parse(p.sharing_with) : [],
-          folder_color: p.folder_color || '#1E90FF'  // ← Add this line
+          folder_color: p.folder_color || '#1E90FF'
         };
       });
     }
@@ -1341,7 +1687,7 @@ const upsertUserProfile = async (username, updates) => {
       location_lng: prof.location_lng || null,
       location_updated: prof.location_updated || null,
       sharing_with: JSON.stringify(prof.sharing_with || []),
-      folder_color: prof.folder_color || null  // ← Make sure this line exists
+      folder_color: prof.folder_color || null
     };
     const rPatch = await sbFetch(`user_profiles?username=eq.${encodeURIComponent(username)}`, 'PATCH', payload);
     if (!rPatch.ok) await sbFetch('user_profiles', 'POST', payload);
@@ -1368,7 +1714,7 @@ const loadFoldersFromCloud = async () => {
         createdBy: f.created_by, 
         createdByPhone: f.created_by_phone, 
         createdAt: f.created_at,
-        creatorColor: f.creator_color || '#1E90FF'  // ← Add this with fallback
+        creatorColor: f.creator_color || '#1E90FF'
       }));
     }
   } catch(e) { console.error(e); }
@@ -1469,7 +1815,7 @@ const loadRecipes = async () => {
         servings: rec.servings || '', 
         category: rec.category || 'other', 
         image_data: rec.image_data || null,
-        images_data: rec.images_data || '[]',  // ← ADD THIS LINE
+        images_data: rec.images_data || '[]',
         createdBy: rec.created_by, 
         createdAt: rec.created_at 
       }));
@@ -1489,7 +1835,7 @@ const saveRecipe = async (rec) => {
       servings: rec.servings, 
       category: rec.category, 
       image_data: rec.image_data,
-      images_data: rec.images_data || '[]',  // ← ADD THIS LINE
+      images_data: rec.images_data || '[]',
       created_by: rec.createdBy, 
       created_at: rec.createdAt 
     }); 
@@ -1507,7 +1853,7 @@ const updateRecipe = async (rec) => {
       servings: rec.servings, 
       category: rec.category, 
       image_data: rec.image_data,
-      images_data: rec.images_data  // ← ADD THIS LINE
+      images_data: rec.images_data
     }); 
     return r.ok; 
   } catch(e) { return false; } 
@@ -1521,7 +1867,7 @@ const getFolders = () => folders;
 const canDeleteFolder = (folder) => currentUser.role === 'admin' || folder.createdBy === currentUser.username;
 const createFolder = async (folderName, driveLink) => {
   if (folders.find(f => f.name === folderName)) { showMessage('Folder already exists!', 'error'); return false; }
-  const creatorColor = getUserFolderColor(); // Get current user's color
+  const creatorColor = getUserFolderColor();
   const newFolder = { 
     id: Date.now(), 
     name: folderName, 
@@ -1529,7 +1875,7 @@ const createFolder = async (folderName, driveLink) => {
     createdBy: currentUser.username, 
     createdByPhone: currentUser.phone, 
     createdAt: new Date().toISOString(),
-    creatorColor: creatorColor  // ← Save the creator's color
+    creatorColor: creatorColor
   };
   const saved = await saveFolderToCloud(newFolder);
   if (saved) { 
@@ -1572,8 +1918,9 @@ const createFolderInDrive = async () => {
   renderApp();
 };
 
-// ============ CALENDAR LOGIC ============
+// ============ CALENDAR LOGIC WITH MEMORY SUPPORT ============
 const canEditEvent = (ev) => currentUser.role === 'admin' || ev.createdBy === currentUser.username;
+
 const openAddEventModal = (prefillDate) => {
   document.getElementById('calEventModalOverlay')?.remove();
   const today = toDateStr(new Date());
@@ -1585,83 +1932,72 @@ const openAddEventModal = (prefillDate) => {
       <input type="text" id="evTitle" placeholder="Event title" autocomplete="off">
       <input type="date" id="evDate" value="${escapeHtml(prefillDate || today)}">
       <select id="evType">${Object.entries(EVENT_TYPES).map(([k,v]) => `<option value="${k}">${v.icon} ${v.label}</option>`).join('')}</select>
+      
+      <!-- Birthday Fields -->
       <div id="yearOfBirthGroup" style="display:none">
         <input type="number" id="evYearOfBirth" placeholder="Year of birth (e.g. 1990)" min="1900" max="${new Date().getFullYear()}">
       </div>
+      
+      <!-- Memory Fields - Only date of passing -->
+      <div id="memoryFields" style="display:none">
+        <label style="font-size:10px;font-weight:700;color:var(--tx2);display:block;margin-top:4px">🕊️ Date of Passing</label>
+        <input type="date" id="evMemoryPassed" value="${escapeHtml(prefillDate || today)}">
+        <textarea id="evMemoryTribute" placeholder="Tribute / In loving memory message" rows="2" style="margin-top:6px"></textarea>
+      </div>
+      
       <textarea id="evDesc" placeholder="Description (optional)" style="margin-bottom:8px"></textarea>
       <div id="evModalMsg"></div>
       <div class="modal-buttons"><button class="btn btn-p" onclick="doAddEvent()">Save Event</button><button class="btn btn-gh" onclick="closeCalModal()">Cancel</button></div>
     </div>`;
   
-  // Show/hide year of birth field based on event type
   const typeSelect = overlay.querySelector('#evType');
   const yearGroup = overlay.querySelector('#yearOfBirthGroup');
-  const toggleYearField = () => {
-    if (typeSelect.value === 'birthday') {
-      yearGroup.style.display = 'block';
-    } else {
-      yearGroup.style.display = 'none';
-    }
+  const memoryGroup = overlay.querySelector('#memoryFields');
+  
+  const toggleFields = () => {
+    yearGroup.style.display = typeSelect.value === 'birthday' ? 'block' : 'none';
+    memoryGroup.style.display = typeSelect.value === 'memory' ? 'block' : 'none';
   };
-  typeSelect.addEventListener('change', toggleYearField);
-  toggleYearField();
+  typeSelect.addEventListener('change', toggleFields);
+  toggleFields();
   
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeCalModal(); });
   document.body.appendChild(overlay);
   setTimeout(() => document.getElementById('evTitle')?.focus(), 100);
 };
-const openEditEventModal = (id) => {
-  const ev = calendarEvents.find(e => e.id === id);
-  if (!ev || !canEditEvent(ev)) { showMessage('You cannot edit this event.', 'error'); return; }
-  document.getElementById('calEventModalOverlay')?.remove();
-  const overlay = document.createElement('div'); overlay.id = 'calEventModalOverlay'; overlay.className = 'modal-overlay';
-  overlay.innerHTML = `
-    <div class="modal-content" onclick="event.stopPropagation()">
-      <div class="modal-title">✏️ Edit Event</div>
-      <input type="text" id="evTitle" placeholder="Event title" value="${escapeHtml(ev.title)}" autocomplete="off">
-      <input type="date" id="evDate" value="${escapeHtml(ev.eventDate)}">
-      <select id="evType">${Object.entries(EVENT_TYPES).map(([k,v]) => `<option value="${k}" ${k===ev.eventType?'selected':''}>${v.icon} ${v.label}</option>`).join('')}</select>
-      <div id="yearOfBirthGroup" style="${ev.eventType === 'birthday' ? 'display:block' : 'display:none'}">
-        <input type="number" id="evYearOfBirth" placeholder="Year of birth" value="${ev.yearOfBirth || ''}" min="1900" max="${new Date().getFullYear()}">
-      </div>
-      <textarea id="evDesc" placeholder="Description (optional)" style="margin-bottom:8px">${escapeHtml(ev.description)}</textarea>
-      <div id="evModalMsg"></div>
-      <div class="modal-buttons"><button class="btn btn-p" onclick="doEditEvent(${id})">Save Changes</button><button class="btn btn-gh" onclick="closeCalModal()">Cancel</button></div>
-    </div>`;
-  
-  const typeSelect = overlay.querySelector('#evType');
-  const yearGroup = overlay.querySelector('#yearOfBirthGroup');
-  const toggleYearField = () => {
-    if (typeSelect.value === 'birthday') {
-      yearGroup.style.display = 'block';
-    } else {
-      yearGroup.style.display = 'none';
-    }
-  };
-  typeSelect.addEventListener('change', toggleYearField);
-  
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeCalModal(); });
-  document.body.appendChild(overlay);
-};
+
 const doAddEvent = async () => {
   const title = document.getElementById('evTitle')?.value.trim();
   const date = document.getElementById('evDate')?.value;
   const type = document.getElementById('evType')?.value;
   const yearOfBirth = document.getElementById('evYearOfBirth')?.value;
+  const memoryPassed = document.getElementById('evMemoryPassed')?.value;
+  const memoryTribute = document.getElementById('evMemoryTribute')?.value.trim();
   const desc = document.getElementById('evDesc')?.value.trim();
   const msgEl = document.getElementById('evModalMsg');
+  
   if (!title) { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter a title.</div>`; return; }
   if (!date) { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please select a date.</div>`; return; }
   if (type === 'birthday' && yearOfBirth && (yearOfBirth < 1900 || yearOfBirth > new Date().getFullYear())) {
     if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter a valid year.</div>`; return;
   }
   if (msgEl) msgEl.innerHTML = `<div class="al al-i">Saving...</div>`;
+  
+  let finalDescription = desc || '';
+  if (type === 'memory') {
+    const memoryData = {
+      passed: memoryPassed || date,
+      tribute: memoryTribute || ''
+    };
+    finalDescription = JSON.stringify(memoryData);
+  }
+  
   const newEv = { 
     id: Date.now(), 
     title, 
     eventDate: date, 
     eventType: type, 
-    description: desc || '', 
+    description: finalDescription, 
     yearOfBirth: type === 'birthday' ? (yearOfBirth || null) : null,
     createdBy: currentUser.username, 
     createdAt: new Date().toISOString() 
@@ -1677,22 +2013,91 @@ const doAddEvent = async () => {
   }
   else { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Error saving. Check Supabase table setup.</div>`; }
 };
+
+const openEditEventModal = (id) => {
+  const ev = calendarEvents.find(e => e.id === id);
+  if (!ev || !canEditEvent(ev)) { showMessage('You cannot edit this event.', 'error'); return; }
+  
+  // Parse memory data from description if it's a memory event
+  let memoryPassed = '', memoryTribute = '';
+  if (ev.eventType === 'memory') {
+    try {
+      const memData = JSON.parse(ev.description);
+      if (memData && memData.passed !== undefined) {
+        memoryPassed = memData.passed || '';
+        memoryTribute = memData.tribute || '';
+      }
+    } catch(e) { /* not JSON, treat as regular description */ }
+  }
+  
+  document.getElementById('calEventModalOverlay')?.remove();
+  const overlay = document.createElement('div'); overlay.id = 'calEventModalOverlay'; overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-title">✏️ Edit Event</div>
+      <input type="text" id="evTitle" placeholder="Event title" value="${escapeHtml(ev.title)}" autocomplete="off">
+      <input type="date" id="evDate" value="${escapeHtml(ev.eventDate)}">
+      <select id="evType">${Object.entries(EVENT_TYPES).map(([k,v]) => `<option value="${k}" ${k===ev.eventType?'selected':''}>${v.icon} ${v.label}</option>`).join('')}</select>
+      
+      <div id="yearOfBirthGroup" style="${ev.eventType === 'birthday' ? 'display:block' : 'display:none'}">
+        <input type="number" id="evYearOfBirth" placeholder="Year of birth" value="${ev.yearOfBirth || ''}" min="1900" max="${new Date().getFullYear()}">
+      </div>
+      
+      <div id="memoryFieldsGroup" style="${ev.eventType === 'memory' ? 'display:block' : 'display:none'}">
+        <label style="font-size:10px;font-weight:700;color:var(--tx2);display:block;margin-top:4px">🕊️ Date of Passing</label>
+        <input type="date" id="evMemoryPassed" value="${memoryPassed || ev.eventDate || ''}">
+        <textarea id="evMemoryTribute" placeholder="Tribute / In loving memory message" rows="2" style="margin-top:6px">${escapeHtml(memoryTribute)}</textarea>
+      </div>
+      
+      <textarea id="evDesc" placeholder="Description (optional)" style="margin-bottom:8px">${ev.eventType === 'memory' ? '' : escapeHtml(ev.description)}</textarea>
+      <div id="evModalMsg"></div>
+      <div class="modal-buttons"><button class="btn btn-p" onclick="doEditEvent(${id})">Save Changes</button><button class="btn btn-gh" onclick="closeCalModal()">Cancel</button></div>
+    </div>`;
+  
+  const typeSelect = overlay.querySelector('#evType');
+  const yearGroup = overlay.querySelector('#yearOfBirthGroup');
+  const memoryGroup = overlay.querySelector('#memoryFieldsGroup');
+  
+  const toggleFields = () => {
+    yearGroup.style.display = typeSelect.value === 'birthday' ? 'block' : 'none';
+    memoryGroup.style.display = typeSelect.value === 'memory' ? 'block' : 'none';
+  };
+  typeSelect.addEventListener('change', toggleFields);
+  
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeCalModal(); });
+  document.body.appendChild(overlay);
+};
+
 const doEditEvent = async (id) => {
   const title = document.getElementById('evTitle')?.value.trim();
   const date = document.getElementById('evDate')?.value;
   const type = document.getElementById('evType')?.value;
   const yearOfBirth = document.getElementById('evYearOfBirth')?.value;
+  const memoryPassed = document.getElementById('evMemoryPassed')?.value;
+  const memoryTribute = document.getElementById('evMemoryTribute')?.value.trim();
   const desc = document.getElementById('evDesc')?.value.trim();
   const msgEl = document.getElementById('evModalMsg');
+  
   if (!title) { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please enter a title.</div>`; return; }
   if (!date) { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Please select a date.</div>`; return; }
   if (msgEl) msgEl.innerHTML = `<div class="al al-i">Saving...</div>`;
   const ev = calendarEvents.find(e => e.id === id); if (!ev) return;
+  
+  let finalDescription = desc || '';
+  if (type === 'memory') {
+    const memoryData = {
+      passed: memoryPassed || date,
+      tribute: memoryTribute || ''
+    };
+    finalDescription = JSON.stringify(memoryData);
+  }
+  
   ev.title = title; 
   ev.eventDate = date; 
   ev.eventType = type; 
   ev.yearOfBirth = type === 'birthday' ? (yearOfBirth || null) : null;
-  ev.description = desc || '';
+  ev.description = finalDescription;
+  
   const updated = await updateCalendarEvent(ev);
   if (updated) { 
     calendarEvents.sort((a,b) => a.eventDate.localeCompare(b.eventDate)); 
@@ -1702,6 +2107,7 @@ const doEditEvent = async (id) => {
   }
   else { if (msgEl) msgEl.innerHTML = `<div class="al al-e">Error updating event.</div>`; }
 };
+
 const confirmDeleteEvent = async (id) => {
   const ev = calendarEvents.find(e => e.id === id);
   if (!ev || !canEditEvent(ev)) { showMessage('You cannot delete this event.', 'error'); return; }
@@ -1745,6 +2151,13 @@ const compressImage = (file, maxPx = 1200, quality = 0.78) => new Promise((resol
 // ============ RECIPE LOGIC ============
 const canEditRecipe = (rec) => currentUser.role === 'admin' || rec.createdBy === currentUser.username;
 let pendingRecipeImageData = null;
+let recipeViewMode = localStorage.getItem('recipeViewMode') || 'list';
+
+const setRecipeViewMode = (mode) => {
+  recipeViewMode = mode;
+  localStorage.setItem('recipeViewMode', mode);
+  renderRecipes();
+};
 
 const openAddRecipeModal = () => {
   pendingRecipeImages = [];
@@ -2002,7 +2415,10 @@ const confirmDeleteRecipe = async (id) => {
   if (ok) { recipes = recipes.filter(r => r.id !== id); showMessage('Recipe deleted!', 'success'); currentRecipe = null; renderRecipes(); }
   else showMessage('Error deleting recipe.', 'error');
 };
-const viewRecipeDetail = (id) => { currentRecipe = id; renderRecipes(); };
+const viewRecipeDetail = (id) => { 
+  currentRecipe = id; 
+  renderRecipes(); 
+};
 const backToRecipeList = () => { currentRecipe = null; renderRecipes(); };
 const closeRecipeModal = () => { document.getElementById('recipeModalOverlay')?.remove(); pendingRecipeImageData = null; };
 
@@ -2231,13 +2647,28 @@ const renderHome = () => {
   const et = EVENT_TYPES[ev.eventType] || EVENT_TYPES.event;
   const [y,m,d] = ev.eventDate.split('-');
   let ageDisplay = '';
+  let memoryDisplay = '';
+  
   if (ev.eventType === 'birthday' && ev.yearOfBirth) {
     const birthYear = parseInt(ev.yearOfBirth);
     const eventDateObj = new Date(ev.eventDate);
     let age = eventDateObj.getFullYear() - birthYear;
     ageDisplay = `<div style="font-size:8px;color:var(--a1);margin-top:2px">🎂 Turning ${age}</div>`;
   }
-  return `<div class="upcoming-strip"><div class="udb"><div class="udb-day">${parseInt(d)}</div><div class="udb-mon">${shortMonth(parseInt(m)-1)}</div></div><div style="flex:1;min-width:0"><div style="font-weight:800;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${et.icon} ${escapeHtml(ev.title)}</div>${ageDisplay}<div style="font-size:10px;color:var(--tx3);margin-top:1px">${escapeHtml(ev.createdBy)}</div></div><span class="event-badge ${et.badgeClass}">${et.label}</span></div>`;
+  
+  if (ev.eventType === 'memory') {
+    try {
+      const memData = JSON.parse(ev.description);
+      if (memData && memData.passed) {
+        const timeSince = getTimeSincePassed(memData.passed);
+        if (timeSince) {
+          memoryDisplay = `<div style="font-size:8px;color:#9C27B0;margin-top:2px">🕊️ Passed ${timeSince} ago</div>`;
+        }
+      }
+    } catch(e) {}
+  }
+  
+  return `<div class="upcoming-strip"><div class="udb"><div class="udb-day">${parseInt(d)}</div><div class="udb-mon">${shortMonth(parseInt(m)-1)}</div></div><div style="flex:1;min-width:0"><div style="font-weight:800;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${et.icon} ${escapeHtml(ev.title)}</div>${ageDisplay}${memoryDisplay}<div style="font-size:10px;color:var(--tx3);margin-top:1px">${escapeHtml(ev.createdBy)}</div></div><span class="event-badge ${et.badgeClass}">${et.label}</span></div>`;
 }).join('')}
         <button class="btn btn-gh btn-w" style="margin-top:6px;font-size:11px" onclick="navigateTo('calendar')">View Full Calendar →</button>
       </div>
@@ -2287,8 +2718,8 @@ const renderFolderView = () => {
             </div>
           </div>
           <div class="view-toggle">
-            <button class="view-btn ${folderViewMode === 'grid' ? 'active' : ''}" onclick="toggleFolderView('grid')">▦</button>
-            <button class="view-btn ${folderViewMode === 'list' ? 'active' : ''}" onclick="toggleFolderView('list')">☰</button>
+            <button class="view-btn ${folderViewMode === 'grid' ? 'active' : ''}" onclick="toggleFolderView('grid')">▦ Grid</button>
+            <button class="view-btn ${folderViewMode === 'list' ? 'active' : ''}" onclick="toggleFolderView('list')">☰ List</button>
           </div>
           <button class="btn btn-p btn-sm" onclick="createFolderInDrive()">+ New</button>
         </div>
@@ -2376,7 +2807,26 @@ const renderFolderView = () => {
     </div>
   `;
 };
-// ============ RENDER: CALENDAR ============
+
+// ============ RENDER: CALENDAR WITH LIST/GRID VIEW AND REPEATING EVENTS ============
+let calendarViewMode = localStorage.getItem('calendarViewMode') || 'list';
+
+const setCalendarViewMode = (mode) => {
+  calendarViewMode = mode;
+  localStorage.setItem('calendarViewMode', mode);
+  renderCalendar();
+};
+
+// Check if an event occurs on a given date (supports yearly repeating)
+const eventOccursOnDate = (event, dateStr) => {
+  const eventDate = new Date(event.eventDate);
+  const checkDate = new Date(dateStr);
+  
+  // Same month and day (yearly repeating)
+  return eventDate.getMonth() === checkDate.getMonth() && 
+         eventDate.getDate() === checkDate.getDate();
+};
+
 const renderCalendar = () => {
   const container = document.getElementById('calendarContainer'); if (!container) return;
   const year = calendarDate.getFullYear(), month = calendarDate.getMonth();
@@ -2387,17 +2837,55 @@ const renderCalendar = () => {
   for (let i = 0; i < startDow; i++) { const d = new Date(year, month, 1 - startDow + i); days.push({ dateStr: toDateStr(d), num: d.getDate(), other: true }); }
   for (let d = 1; d <= lastDate; d++) days.push({ dateStr: `${year}-${pad2(month+1)}-${pad2(d)}`, num: d, other: false });
   while (days.length < 42) { const d = new Date(year, month + 1, days.length - startDow - lastDate + 1); days.push({ dateStr: toDateStr(d), num: d.getDate(), other: true }); }
+  
+  // Build event map for the current month (checking yearly recurrence)
   const evByDate = {};
-  calendarEvents.forEach(ev => { if (!evByDate[ev.eventDate]) evByDate[ev.eventDate] = []; evByDate[ev.eventDate].push(ev); });
-  let listEvents = calendarEvents.filter(ev => { const [y,m] = ev.eventDate.split('-'); return parseInt(y)===year && parseInt(m)===(month+1); });
+  calendarEvents.forEach(ev => {
+    // Check each day in the month
+    for (let d = 1; d <= lastDate; d++) {
+      const dateStr = `${year}-${pad2(month+1)}-${pad2(d)}`;
+      if (eventOccursOnDate(ev, dateStr)) {
+        if (!evByDate[dateStr]) evByDate[dateStr] = [];
+        evByDate[dateStr].push(ev);
+      }
+    }
+  });
+  
+  let listEvents = [];
+  // Get all events that occur this month
+  for (let d = 1; d <= lastDate; d++) {
+    const dateStr = `${year}-${pad2(month+1)}-${pad2(d)}`;
+    calendarEvents.forEach(ev => {
+      if (eventOccursOnDate(ev, dateStr)) {
+        // Only add if not already in list for this date
+        if (!listEvents.some(e => e.id === ev.id && e.eventDate === dateStr)) {
+          const evCopy = { ...ev, eventDate: dateStr };
+          listEvents.push(evCopy);
+        }
+      }
+    });
+  }
+  
   if (calendarSelectedDay) listEvents = listEvents.filter(ev => ev.eventDate === calendarSelectedDay);
   if (calendarFilter !== 'all') listEvents = listEvents.filter(ev => ev.eventType === calendarFilter);
-  const dayHeaders = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  
+  // Sort by date
+  listEvents.sort((a, b) => a.eventDate.localeCompare(b.eventDate));
+  
+  const isGridView = calendarViewMode === 'grid';
+  
   container.innerHTML = `
-    <div class="sh"><div><div class="sh-t">📅 Calendar</div><div class="sh-s">Family events &amp; birthdays</div></div><button class="btn btn-p btn-sm" onclick="openAddEventModal('${today}')">+ Add</button></div>
+    <div class="sh"><div><div class="sh-t">📅 Calendar</div><div class="sh-s">${monthName(month)} ${year}</div></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      <div class="view-toggle">
+        <button class="view-btn ${!isGridView ? 'active' : ''}" onclick="setCalendarViewMode('list')">☰ List</button>
+        <button class="view-btn ${isGridView ? 'active' : ''}" onclick="setCalendarViewMode('grid')">▦ Grid</button>
+      </div>
+      <button class="btn btn-p btn-sm" onclick="openAddEventModal('${today}')">+ Add</button>
+    </div></div>
     <div class="cal-header"><button class="cal-nav-btn" onclick="calPrevMonth()">‹</button><div class="cal-month-label">${monthName(month)} ${year}</div><button class="cal-nav-btn" onclick="calNextMonth()">›</button></div>
     <div class="cal-grid">
-      <div class="cal-day-headers">${dayHeaders.map(d => `<div class="cal-day-hdr">${d}</div>`).join('')}</div>
+      <div class="cal-day-headers">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => `<div class="cal-day-hdr">${d}</div>`).join('')}</div>
       <div class="cal-days">
         ${days.map(day => {
           const dayEvs = evByDate[day.dateStr] || [];
@@ -2413,69 +2901,166 @@ const renderCalendar = () => {
       ${Object.entries(EVENT_TYPES).map(([k,v]) => `<button class="pill-tab ${calendarFilter===k?'active':''}" onclick="calSetFilter('${k}')">${v.icon} ${v.label}</button>`).join('')}
     </div>
     ${calendarSelectedDay ? `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px"><div style="font-size:12px;font-weight:700;color:var(--a1)">📍 ${formatDate(calendarSelectedDay)}</div><div style="display:flex;gap:5px"><button class="btn btn-sm btn-p" onclick="openAddEventModal('${calendarSelectedDay}')">+ Add</button><button class="btn btn-sm btn-gh" onclick="calSelectDay('${calendarSelectedDay}')">Show All</button></div></div>` : `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--tx3)">${monthName(month)} · ${listEvents.length} event${listEvents.length!==1?'s':''}</div></div>`}
-    ${listEvents.length === 0 ? `<div class="empty-state"><div class="empty-icon">🗓️</div><div class="empty-text">${calendarSelectedDay ? 'No events on this day' : 'No events this month'}</div><div class="empty-sub">Tap a day or use "+ Add"</div></div>` : listEvents.map(ev => {
-      const et = EVENT_TYPES[ev.eventType] || EVENT_TYPES.event, canEdit = canEditEvent(ev);
-      let ageDisplay = '';
-if (ev.eventType === 'birthday' && ev.yearOfBirth) {
-  const birthYear = parseInt(ev.yearOfBirth);
-  const eventDateObj = new Date(ev.eventDate);
-  const todayDate = new Date();
-  let age = eventDateObj.getFullYear() - birthYear;
-  const birthMonth = eventDateObj.getMonth();
-  const birthDay = eventDateObj.getDate();
-  const todayMonth = todayDate.getMonth();
-  const todayDay = todayDate.getDate();
-  
-  let willTurnAge = age;
-  let currentAge = age - 1;
-  
-  const hasPassed = (todayMonth > birthMonth) || (todayMonth === birthMonth && todayDay >= birthDay);
-  
-  if (hasPassed) {
-    ageDisplay = `<div style="font-size:10px;color:var(--a1);margin-top:2px">🎂 Turns ${age} years old (${currentAge} currently)</div>`;
-  } else {
-    ageDisplay = `<div style="font-size:10px;color:var(--a1);margin-top:2px">🎂 Will turn ${age} years old</div>`;
-  }
-}
-      return `<div class="event-card"><div class="event-icon ${et.iconClass}">${et.icon}</div><div style="flex:1;min-width:0"><div class="event-title">${escapeHtml(ev.title)}</div><div style="margin-top:2px"><span class="event-badge ${et.badgeClass}">${et.label}</span></div><div class="event-date-label" style="margin-top:4px">📅 ${formatDateFull(ev.eventDate)}</div>${ageDisplay}${ev.description ? `<div class="event-desc">${escapeHtml(ev.description)}</div>` : ''}<div class="event-date-label" style="margin-top:4px">👤 ${escapeHtml(ev.createdBy)}</div>${canEdit ? `<div class="event-actions"><button class="btn btn-sm btn-gh" onclick="openEditEventModal(${ev.id})">✏️ Edit</button><button class="btn btn-sm btn-d" onclick="confirmDeleteEvent(${ev.id})">🗑️ Delete</button></div>` : ''}</div></div>`;
-    }).join('')}
+    
+    <div>
+      ${listEvents.length === 0 ? `<div class="empty-state"><div class="empty-icon">🗓️</div><div class="empty-text">${calendarSelectedDay ? 'No events on this day' : 'No events this month'}</div><div class="empty-sub">Tap a day or use "+ Add"</div></div>` : 
+      listEvents.map(ev => {
+        const et = EVENT_TYPES[ev.eventType] || EVENT_TYPES.event;
+        const canEdit = canEditEvent(ev);
+        let ageDisplay = '';
+        let extraDisplay = '';
+        
+        // Handle Memory events - show time since passed (only one date - passing date)
+        if (ev.eventType === 'memory') {
+          try {
+            const memData = JSON.parse(ev.description);
+            if (memData && memData.passed) {
+              const timeSince = getTimeSincePassed(memData.passed);
+              if (timeSince) {
+                if (isGridView) {
+                  extraDisplay = `<div style="font-size:10px;color:#9C27B0;margin-top:6px">🕊️ ${memData.tribute || 'In loving memory'}</div>
+                                <div style="font-size:9px;color:var(--tx3)">📅 Passed: ${formatDate(memData.passed)}</div>
+                                <div style="font-size:9px;color:var(--a1);margin-top:2px">⏳ Passed ${timeSince} ago</div>`;
+                } else {
+                  extraDisplay = `<span style="font-size:9px;color:#9C27B0;margin-left:4px">🕊️ Passed ${timeSince} ago</span>`;
+                }
+              }
+            }
+          } catch(e) { /* not JSON, treat as regular event */ }
+        }
+        
+        // Handle Birthday age display
+        if (ev.eventType === 'birthday' && ev.yearOfBirth) {
+          const birthYear = parseInt(ev.yearOfBirth);
+          const eventDateObj = new Date(ev.eventDate);
+          const todayDate = new Date();
+          let age = eventDateObj.getFullYear() - birthYear;
+          const birthMonth = eventDateObj.getMonth();
+          const birthDay = eventDateObj.getDate();
+          const todayMonth = todayDate.getMonth();
+          const todayDay = todayDate.getDate();
+          const hasPassed = (todayMonth > birthMonth) || (todayMonth === birthMonth && todayDay >= birthDay);
+          if (isGridView) {
+            if (hasPassed) {
+              ageDisplay = `<div style="font-size:9px;color:var(--a1);margin-top:2px">🎂 Turns ${age} years old (${age-1} currently)</div>`;
+            } else {
+              ageDisplay = `<div style="font-size:9px;color:var(--a1);margin-top:2px">🎂 Will turn ${age} years old</div>`;
+            }
+          } else {
+            ageDisplay = `<span style="font-size:9px;color:var(--a1);margin-left:4px">🎂 ${age}</span>`;
+          }
+        }
+        
+        // Show original event date if it's a memory or birthday (for yearly recurrence reference)
+        const yearlyLabel = `<span style="font-size:8px;color:var(--tx3);margin-left:4px">🔄 Repeats yearly</span>`;
+        
+        if (isGridView) {
+          // GRID VIEW - Full details
+          return `<div class="event-card"><div class="event-icon ${et.iconClass}">${et.icon}</div><div style="flex:1;min-width:0"><div class="event-title">${escapeHtml(ev.title)}</div><div style="margin-top:2px"><span class="event-badge ${et.badgeClass}">${et.label}</span> ${yearlyLabel}</div><div class="event-date-label" style="margin-top:4px">📅 ${formatDateFull(ev.eventDate)}</div>${ageDisplay}${extraDisplay}${ev.description && ev.eventType !== 'memory' && ev.eventType !== 'birthday' ? `<div class="event-desc">${escapeHtml(ev.description)}</div>` : ''}<div class="event-date-label" style="margin-top:4px">👤 ${escapeHtml(ev.createdBy)}</div>${canEdit ? `<div class="event-actions"><button class="btn btn-sm btn-gh" onclick="openEditEventModal(${ev.id})">✏️ Edit</button><button class="btn btn-sm btn-d" onclick="confirmDeleteEvent(${ev.id})">🗑️ Delete</button></div>` : ''}</div></div>`;
+        } else {
+          // LIST VIEW - ONE LINE ONLY
+          return `<div class="event-card" style="align-items:center; padding:6px 10px; margin-bottom:4px;">
+            <div class="event-icon" style="width:24px; height:24px; font-size:11px; border-radius:6px; flex-shrink:0;">${et.icon}</div>
+            <div style="flex:1; min-width:0; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              <div class="event-title" style="font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px;">${escapeHtml(ev.title)}</div>
+              <span class="event-badge ${et.badgeClass}" style="font-size:7px; padding:1px 5px;">${et.label}</span>
+              <span style="font-size:8px; color:var(--tx3); white-space:nowrap;">📅 ${formatDateFull(ev.eventDate)}</span>
+              ${ageDisplay}
+              ${extraDisplay}
+              <span style="font-size:7px; color:var(--tx3);">🔄</span>
+            </div>
+            ${canEdit ? `<button class="btn btn-sm btn-gh" style="padding:2px 5px; font-size:7px; flex-shrink:0;" onclick="event.stopPropagation(); openEditEventModal(${ev.id})">✏️</button>` : ''}
+          </div>`;
+        }
+      }).join('')}
+    </div>
   `;
 };
 
-// ============ RENDER: RECIPES ============
+// ============ RENDER: RECIPES WITH LIST/GRID VIEW, SORT, AND LIGHTBOX ============
 const renderRecipes = () => {
   const container = document.getElementById('recipesContainer'); if (!container) return;
-  if (currentRecipe) { renderRecipeDetail(currentRecipe); return; }
+  
+  if (currentRecipe) { 
+    renderRecipeDetail(currentRecipe); 
+    return; 
+  }
+  
+  // Filter and sort recipes
   let filteredRecipes = recipeFilter === 'all' ? recipes : recipes.filter(r => r.category === recipeFilter);
+  filteredRecipes = sortRecipes(filteredRecipes);
+  
+  const isListView = recipeViewMode === 'list';
+  
   container.innerHTML = `
-    <div class="sh"><div><div class="sh-t">🍳 Recipes</div><div class="sh-s">Family recipes shared with love</div></div><button class="btn btn-recipe btn-sm" onclick="openAddRecipeModal()">+ Add</button></div>
+    <div class="sh">
+      <div><div class="sh-t">🍳 Recipes</div><div class="sh-s">${filteredRecipes.length} recipes</div></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <!-- Sort Dropdown -->
+        <div class="sort-dropdown" style="position:relative">
+          <button class="btn btn-gh btn-sm" onclick="toggleRecipeSortMenu(event)" style="display:flex;align-items:center;gap:4px">
+            🔽 Sort: ${recipeSortBy === 'name' ? 'A-Z' : recipeSortBy === 'date' ? 'Date' : 'Creator'}
+          </button>
+          <div id="recipeSortMenu" style="display:none;position:absolute;top:100%;right:0;background:var(--s1);border:1px solid var(--bd);border-radius:8px;z-index:100;min-width:100px;margin-top:4px;box-shadow:var(--shadow)">
+            <div class="sort-option" onclick="setRecipeSort('name');toggleRecipeSortMenu(event)" style="padding:6px 10px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--bd)">📄 Sort A-Z</div>
+            <div class="sort-option" onclick="setRecipeSort('date');toggleRecipeSortMenu(event)" style="padding:6px 10px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--bd)">📅 Sort by Date</div>
+            <div class="sort-option" onclick="setRecipeSort('creator');toggleRecipeSortMenu(event)" style="padding:6px 10px;cursor:pointer;font-size:11px">👤 Sort by Creator</div>
+          </div>
+        </div>
+        <div class="view-toggle">
+          <button class="view-btn ${isListView ? 'active' : ''}" onclick="setRecipeViewMode('list')">☰ List</button>
+          <button class="view-btn ${!isListView ? 'active' : ''}" onclick="setRecipeViewMode('grid')">▦ Grid</button>
+        </div>
+        <button class="btn btn-recipe btn-sm" onclick="openAddRecipeModal()">+ Add</button>
+      </div>
+    </div>
+    
     <div class="pill-tabs">
       <button class="pill-tab ${recipeFilter==='all'?'active':''}" onclick="setRecipeFilter('all')">All</button>
       ${Object.entries(RECIPE_CATEGORIES).map(([k,v]) => `<button class="pill-tab ${recipeFilter===k?'active':''}" onclick="setRecipeFilter('${k}')">${v}</button>`).join('')}
     </div>
+    
     ${filteredRecipes.length === 0 ? `
       <div class="empty-state">
         <div class="empty-icon">🍴</div>
         <div class="empty-text">No recipes yet</div>
         <div class="empty-sub">Be the first to share a family recipe!</div>
         <button class="btn btn-recipe" style="margin-top:14px" onclick="openAddRecipeModal()">+ Add First Recipe</button>
-      </div>` : filteredRecipes.map(rec => `
-      <div class="recipe-card" onclick="viewRecipeDetail(${rec.id})">
-        ${rec.images_data && rec.images_data !== '[]' ? 
-  `<img class="recipe-img" src="${JSON.parse(rec.images_data)[0]}" alt="${escapeHtml(rec.title)}" onerror="this.style.display='none'">` : 
-  (rec.image_data ? `<img class="recipe-img" src="${rec.image_data}" alt="${escapeHtml(rec.title)}" onerror="this.style.display='none'">` : `<div class="recipe-img-placeholder">🍽️</div>`)
-}}
-        <div class="recipe-body">
-          <div class="recipe-title">${escapeHtml(rec.title)}</div>
-          <div class="recipe-meta">
-            <span class="recipe-badge">${RECIPE_CATEGORIES[rec.category] || '🍴 Other'}</span>
-           ${rec.prep_time ? `<span class="recipe-badge">⏱️ ${escapeHtml(rec.prep_time)}</span>` : ''}
-${rec.servings ? `<span class="recipe-badge">👥 ${escapeHtml(rec.servings)}</span>` : ''}
-          </div>
-          ${rec.description ? `<div class="recipe-desc">${escapeHtml(rec.description)}</div>` : ''}
-          <div style="font-size:10px;color:var(--tx3);margin-top:6px;font-weight:600">👨‍🍳 ${escapeHtml(rec.createdBy)} · ${new Date(rec.createdAt).toLocaleDateString()}</div>
-        </div>
-      </div>`).join('')}`;
+      </div>` : 
+      (isListView ? 
+        // LIST VIEW - Show name, category, creator only (NO PHOTOS)
+        `<div>
+          ${filteredRecipes.map(rec => `
+            <div class="recipe-card" onclick="viewRecipeDetail(${rec.id})" style="display:flex; align-items:center; padding:8px 10px; margin-bottom:6px;">
+              <div style="flex:1; min-width:0;">
+                <div class="recipe-title" style="font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(rec.title)}</div>
+                <div class="recipe-meta" style="margin-bottom:0;">
+                  <span class="recipe-badge" style="font-size:7px; padding:1px 6px;">${RECIPE_CATEGORIES[rec.category] || '🍴 Other'}</span>
+                  <span style="font-size:8px; color:var(--tx3);">👨‍🍳 ${escapeHtml(rec.createdBy)}</span>
+                </div>
+              </div>
+              <span style="font-size:9px; color:var(--tx3); white-space:nowrap;">📅 ${new Date(rec.createdAt).toLocaleDateString()}</span>
+            </div>
+          `).join('')}
+        </div>` :
+        // GRID VIEW - Show name, category, description preview, creator (NO PHOTOS)
+        `<div class="recipe-grid">
+          ${filteredRecipes.map(rec => `
+            <div class="recipe-card" onclick="viewRecipeDetail(${rec.id})">
+              <div class="recipe-body">
+                <div class="recipe-title">${escapeHtml(rec.title)}</div>
+                <div class="recipe-meta">
+                  <span class="recipe-badge">${RECIPE_CATEGORIES[rec.category] || '🍴 Other'}</span>
+                  ${rec.prep_time ? `<span class="recipe-badge">⏱️ ${escapeHtml(rec.prep_time)}</span>` : ''}
+                </div>
+                ${rec.description ? `<div class="recipe-desc">${escapeHtml(rec.description)}</div>` : ''}
+                <div style="font-size:9px;color:var(--tx3);margin-top:4px;font-weight:600">👨‍🍳 ${escapeHtml(rec.createdBy)}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>`)
+    }
+  `;
 };
 
 const renderRecipeDetail = (id) => {
@@ -2483,27 +3068,34 @@ const renderRecipeDetail = (id) => {
   const rec = recipes.find(r => r.id === id);
   if (!rec) { currentRecipe = null; renderRecipes(); return; }
   const canEdit = canEditRecipe(rec);
+  
+  // Get images for detail view only
+  const images = (rec.images_data && rec.images_data !== '[]') ? JSON.parse(rec.images_data) : [];
+  
+  // Store images globally for lightbox access
+  window.currentRecipeImages = images;
+  
   const ingredientsList = rec.ingredients.split('\n').filter(l => l.trim()).map(l => `<li style="padding:4px 0;border-bottom:1px solid var(--bd);font-size:12px;color:var(--tx2)">${escapeHtml(l.trim())}</li>`).join('');
   const instructionsList = rec.instructions.split('\n').filter(l => l.trim()).map((l, i) => `<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd)"><div style="background:var(--a1);color:var(--btn-text);border-radius:7px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex-shrink:0;margin-top:1px">${i+1}</div><div style="font-size:12px;color:var(--tx2);line-height:1.55">${escapeHtml(l.trim())}</div></div>`).join('');
+  
   container.innerHTML = `
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap">
       <span style="color:var(--a1);cursor:pointer;font-weight:700;font-size:13px" onclick="backToRecipeList()">🍳  Recipes</span>
       <span style="color:var(--tx3)">›</span>
       <span style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">${escapeHtml(rec.title)}</span>
     </div>
-    ${rec.images_data && rec.images_data !== '[]' ? `
-  <div style="display:flex;overflow-x:auto;gap:8px;margin-bottom:10px;padding-bottom:4px">
-    ${JSON.parse(rec.images_data).map(img => `
-      <div style="flex-shrink:0;width:120px;height:120px;border-radius:12px;overflow:hidden">
-        <img src="${img}" style="width:100%;height:100%;object-fit:cover">
+    
+    <!-- Photos shown ONLY in detail view with click to enlarge -->
+    ${images.length > 0 ? `
+      <div style="display:flex;overflow-x:auto;gap:8px;margin-bottom:10px;padding-bottom:4px;">
+        ${images.map((img, idx) => `
+          <div style="flex-shrink:0;width:120px;height:120px;border-radius:12px;overflow:hidden;cursor:pointer;border:1px solid var(--bd);" onclick="openRecipeLightbox(window.currentRecipeImages, ${idx})">
+            <img src="${img}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">
+          </div>
+        `).join('')}
       </div>
-    `).join('')}
-  </div>
-` : (rec.image_data ? `
-  <div style="border-radius:14px;overflow:hidden;margin-bottom:10px;height:180px">
-    <img src="${rec.image_data}" style="width:100%;height:100%;object-fit:cover" alt="${escapeHtml(rec.title)}">
-  </div>
-` : '')}
+    ` : ''}
+    
     <div class="card">
       <div style="font-size:17px;font-weight:900;margin-bottom:8px;letter-spacing:-.3px">${escapeHtml(rec.title)}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
@@ -2522,10 +3114,9 @@ const renderRecipeDetail = (id) => {
     <div class="card">
       <div class="ctitle">📋 Instructions</div>
       ${instructionsList}
-    </div>`;
+    </div>
+  `;
 };
-
-
 
 const setRecipeFilter = (f) => { recipeFilter = f; renderRecipes(); };
 
@@ -3091,19 +3682,6 @@ const verifySecurityAnswer = async () => {
   }
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 // ============ PULL TO REFRESH ============
 let touchStartY = 0;
 let isRefreshing = false;
@@ -3361,10 +3939,11 @@ window.onload = async () => {
     createFolderInDrive, showEditLinkModal, saveDriveLink, deleteFolder, closeModal, openCloudFolder, openFolderActions, goBackToFolders,
     changePassword, togglePassword, deleteUserAccount, openWhatsApp, updateProfile, toggleTheme, setTheme, renderSettings,
     openAddEventModal, openEditEventModal, doAddEvent, doEditEvent, confirmDeleteEvent, closeCalModal, calPrevMonth, calNextMonth, calSelectDay, calSetFilter,
-    openAddRecipeModal, openEditRecipeModal, closeRecipeModal, doSaveRecipe, confirmDeleteRecipe, viewRecipeDetail, backToRecipeList, setRecipeFilter,
+    openAddRecipeModal, openEditRecipeModal, closeRecipeModal, doSaveRecipe, confirmDeleteRecipe, viewRecipeDetail, backToRecipeList, setRecipeFilter, setRecipeViewMode,
     triggerRecipeImageUpload, triggerRecipeCameraCapture, handleRecipeImageSelect, clearRecipeImage,updateRecipeImagesPreview,removeRecipeImage,clearRecipeImages,updatePhotoCountIndicator,
     openProfilePicModal, closeAvatarModal, triggerAvatarUpload, triggerAvatarCamera, handleAvatarSelect, clearAvatarPreview, doSaveAvatar,
-    updateMyLocation, findFamilyMember, toggleLocationPermission, toggleFolderView
+    updateMyLocation, findFamilyMember, toggleLocationPermission, toggleFolderView,
+    openRecipeLightbox, closeLightbox, performRefresh
   };
   Object.assign(window, fns);
 
@@ -3395,10 +3974,6 @@ window.onload = async () => {
   }
   showLogin();
 };
-
-
-
-
 
 </script>
 </body>
